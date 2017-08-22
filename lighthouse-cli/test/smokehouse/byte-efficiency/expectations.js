@@ -24,6 +24,17 @@ module.exports = [
           }
         }
       },
+      'unused-javascript': {
+        score: '<100',
+        extendedInfo: {
+          value: {
+            wastedKb: 26 + 6,
+            results: {
+              length: 2,
+            },
+          },
+        },
+      },
       'offscreen-images': {
         score: '<100',
         extendedInfo: {

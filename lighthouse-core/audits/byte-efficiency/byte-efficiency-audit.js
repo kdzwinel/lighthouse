@@ -58,6 +58,30 @@ class UnusedBytes extends Audit {
   }
 
   /**
+   * @param {!WebInspector.NetworkRequest} networkRecord
+   * @param {number} totalBytes
+   * @param {string=} resourceType
+   * @param {number=} compressionRatio
+   * @return {number}
+   */
+  static estimateTransferSize(networkRecord, totalBytes, resourceType, compressionRatio = 0.5) {
+    if (!networkRecord) {
+      // We don't know how many bytes this asset used on the network, but we can guess it was
+      // roughly the size of the content gzipped.
+      // See https://discuss.httparchive.org/t/file-size-and-compression-savings/145 for multipliers
+      return Math.round(totalBytes * compressionRatio);
+    } else if (networkRecord._resourceType && networkRecord._resourceType._name === resourceType) {
+      // This was a regular standalone asset, just use the transfer size.
+      return networkRecord._transferSize;
+    } else {
+      // This was an asset that was inlined in a different resource type (e.g. HTML document).
+      // Use the compression ratio of the resource to estimate the total transferred bytes.
+      const compressionRatio = (networkRecord._transferSize / networkRecord._resourceSize) || 1;
+      return Math.round(totalBytes * compressionRatio);
+    }
+  }
+
+  /**
    * @param {!Artifacts} artifacts
    * @return {!Promise<!AuditResult>}
    */

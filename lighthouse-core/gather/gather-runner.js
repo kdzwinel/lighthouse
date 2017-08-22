@@ -10,6 +10,9 @@ const Audit = require('../audits/audit');
 const URL = require('../lib/url-shim');
 const NetworkRecorder = require('../lib/network-recorder.js');
 
+// Base64 encoded blank page <html></html>
+const BLANK_URL = 'data:text/html;base64,PGh0bWw+PC9odG1sPg==';
+
 /**
  * @typedef {!Object<string, !Array<!Promise<*>>>}
  */
@@ -55,16 +58,17 @@ let GathererResults; // eslint-disable-line no-unused-vars
  */
 class GatherRunner {
   /**
-   * Loads about:blank and waits there briefly. Since a Page.reload command does
+   * Loads a blank page and waits there briefly. Since a Page.reload command does
    * not let a service worker take over, we navigate away and then come back to
-   * reload. We do not `waitForLoad` on about:blank since a page load event is
+   * reload. We do not `waitForLoad` on the blank page since a page load event is
    * never fired on it.
    * @param {!Driver} driver
    * @param {url=} url
    * @param {number=} duration
    * @return {!Promise}
    */
-  static loadBlank(driver, url = 'about:blank', duration = 300) {
+  static loadBlank(driver, url, duration = 300) {
+    url = url || BLANK_URL;
     return driver.gotoURL(url).then(_ => new Promise(resolve => setTimeout(resolve, duration)));
   }
 
