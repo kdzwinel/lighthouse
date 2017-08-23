@@ -28,7 +28,8 @@ module.exports = [
         score: '<100',
         extendedInfo: {
           value: {
-            wastedKb: 26 + 6,
+            // TODO(phulce): Update this to =32 once block-level coverage tracking hits stable
+            wastedKb: '>=20',
             results: {
               length: 2,
             },
