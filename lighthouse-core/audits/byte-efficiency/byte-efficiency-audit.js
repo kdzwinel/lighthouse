@@ -58,6 +58,9 @@ class UnusedBytes extends Audit {
   }
 
   /**
+   * Estimates the number of bytes this network record consumed on the network based on the
+   * uncompressed size, uses the actual transfer size from the network record if applicable.
+   *
    * @param {!WebInspector.NetworkRequest} networkRecord
    * @param {number} totalBytes
    * @param {string=} resourceType
