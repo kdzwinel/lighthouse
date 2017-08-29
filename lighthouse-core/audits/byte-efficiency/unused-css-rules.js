@@ -148,7 +148,7 @@ class UnusedCSSRules extends ByteEfficiencyAudit {
 
   /**
    * @param {!Artifacts} artifacts
-   * @return {{results: !Array<!ByteEfficiencyResult>, headings: !Audit.Headings}}
+   * @return {!Audit.HeadingsResult}
    */
   static audit_(artifacts) {
     const styles = artifacts.Styles;
