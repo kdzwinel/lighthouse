@@ -214,7 +214,7 @@ describe('DetailsRenderer', () => {
       assert.ok(el.classList.contains('lh-text'), 'adds classes');
     });
 
-    it.only('renders text URLs', () => {
+    it('renders text URLs', () => {
       const urlText = 'https://example.com/';
       const displayUrlText = '/';
       const el = renderer.render({
