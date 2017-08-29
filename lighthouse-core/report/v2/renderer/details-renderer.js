@@ -5,7 +5,7 @@
  */
 'use strict';
 
-/* globals self CriticalRequestChainRenderer Util */
+/* globals self CriticalRequestChainRenderer Util URL */
 
 class DetailsRenderer {
   /**
@@ -35,6 +35,8 @@ class DetailsRenderer {
         return this._renderText(details);
       case 'url':
         return this._renderURL(details);
+      case 'link':
+        return this._renderLink(/** @type {!DetailsRenderer.LinkDetailsJSON} */ (details));
       case 'thumbnail':
         return this._renderThumbnail(/** @type {!DetailsRenderer.ThumbnailDetails} */ (details));
       case 'filmstrip':
@@ -87,6 +89,27 @@ class DetailsRenderer {
     }
 
     return element;
+  }
+
+  /**
+   * @param {!DetailsRenderer.LinkDetailsJSON} details
+   * @return {!Element}
+   */
+  _renderLink(details) {
+    const allowedProtocols = ['https:', 'http:'];
+    const url = new URL(details.url);
+    if (!allowedProtocols.includes(url.protocol)) {
+      // Fall back to text if protocol not allowed.
+      return this._renderText(details);
+    }
+
+    const a = /** @type {!HTMLAnchorElement} */ (this._dom.createElement('a'));
+    a.rel = 'noopener';
+    a.target = '_blank';
+    a.textContent = details.text;
+    a.href = url.href;
+
+    return a;
   }
 
   /**
@@ -338,6 +361,14 @@ DetailsRenderer.TableDetailsJSON; // eslint-disable-line no-unused-expressions
  * }}
  */
 DetailsRenderer.ThumbnailDetails; // eslint-disable-line no-unused-expressions
+
+/** @typedef {{
+ *     type: string,
+ *     url: string,
+ *     text: string
+ * }}
+ */
+DetailsRenderer.LinkDetailsJSON; // eslint-disable-line no-unused-expressions
 
 /** @typedef {{
  *     type: string,
