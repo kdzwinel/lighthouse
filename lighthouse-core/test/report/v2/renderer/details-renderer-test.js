@@ -213,5 +213,18 @@ describe('DetailsRenderer', () => {
       assert.equal(el.textContent, linkText);
       assert.ok(el.classList.contains('lh-text'), 'adds classes');
     });
+
+    it.only('renders text URLs', () => {
+      const urlText = 'https://example.com/';
+      const displayUrlText = '/';
+      const el = renderer.render({
+        type: 'url',
+        text: urlText,
+      });
+
+      assert.equal(el.localName, 'div');
+      assert.equal(el.textContent, displayUrlText);
+      assert.ok(el.classList.contains('lh-text'), 'adds classes');
+    });
   });
 });

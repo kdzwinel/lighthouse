@@ -34,7 +34,7 @@ class DetailsRenderer {
       case 'text':
         return this._renderText(details);
       case 'url':
-        return this._renderURL(details);
+        return this._renderTextURL(details);
       case 'link':
         return this._renderLink(/** @type {!DetailsRenderer.LinkDetailsJSON} */ (details));
       case 'thumbnail':
@@ -63,7 +63,7 @@ class DetailsRenderer {
    * @param {!DetailsRenderer.DetailsJSON} text
    * @return {!Element}
    */
-  _renderURL(text) {
+  _renderTextURL(text) {
     const url = text.text || '';
 
     let displayedURL;
