@@ -152,7 +152,7 @@ class UnusedBytes extends Audit {
 
   /**
    * @param {!Artifacts} artifacts
-   * @return {{results: !Array<Object>, tableHeadings: Object,
+   * @return {{results: !Array<!ByteEfficiencyResult>, headings: Object,
    *     passes: boolean=, debugString: string=}}
    */
   static audit_() {
@@ -161,3 +161,6 @@ class UnusedBytes extends Audit {
 }
 
 module.exports = UnusedBytes;
+
+/** @typedef {{url: string, totalBytes: number, wastedBytes: number, wastedPercent: number}} */
+UnusedBytes.ByteEfficiencyResult; // eslint-disable-line no-unused-expressions

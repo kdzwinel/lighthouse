@@ -63,7 +63,7 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
   /**
    * @param {!Array<{unusedLength: number, contentLength: number}>} wasteData
    * @param {!WebInspector.NetworkRequest} networkRecord
-   * @return {{url: string, totalBytes: number, wastedBytes: number, wastedPercent: number}}
+   * @return {!ByteEfficiencyResult}
    */
   static mergeWaste(wasteData, networkRecord) {
     let unusedLength = 0;
@@ -88,7 +88,7 @@ class UnusedJavaScript extends ByteEfficiencyAudit {
 
   /**
    * @param {!Artifacts} artifacts
-   * @return {{results: !Array<!Object>, headings: !Audit.Headings}}
+   * @return {{results: !Array<!ByteEfficiencyResult>, headings: !Audit.Headings}}
    */
   static audit_(artifacts, networkRecords) {
     const scriptsByUrl = new Map();
