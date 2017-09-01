@@ -30,7 +30,7 @@ class Description extends Audit {
    */
   static audit(artifacts) {
     return {
-      rawValue: (artifacts.Description !== null && artifacts.Description.length)
+      rawValue: (artifacts.Description !== null && artifacts.Description.length > 0)
     };
   }
 }

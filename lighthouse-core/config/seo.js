@@ -9,17 +9,12 @@ module.exports = {
   extends: 'lighthouse:default',
   passes: [{
     passName: 'seoPass',
-    recordTrace: true,
-    pauseAfterLoadMs: 5250,
-    networkQuietThresholdMs: 5250,
-    cpuQuietThresholdMs: 5250,
-    useThrottling: true,
     gatherers: [
       'seo/description',
     ]
   }],
   audits: [
-    'seo/description'
+    'seo/meta-description'
   ],
   groups: {
     'seo-mobile': {
@@ -46,5 +41,5 @@ module.exports = {
         {id: 'meta-description', weight: 1, group: 'seo-content'}
       ]
     }
-  },
+  }
 };
