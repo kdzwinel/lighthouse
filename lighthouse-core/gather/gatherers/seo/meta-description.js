@@ -7,7 +7,7 @@
 
 const Gatherer = require('../gatherer');
 
-class Description extends Gatherer {
+class MetaDescription extends Gatherer {
 
   /**
    * @param {{driver: !Object}} options Run options
@@ -21,4 +21,5 @@ class Description extends Gatherer {
   }
 }
 
-module.exports = Description;
+module.exports = MetaDescription;
+

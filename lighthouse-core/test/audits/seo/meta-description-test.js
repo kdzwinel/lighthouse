@@ -13,19 +13,19 @@ const assert = require('assert');
 describe('SEO: description audit', () => {
   it('fails when HTML does not contain a description meta tag', () => {
     return assert.equal(Audit.audit({
-      Description: null
+      MetaDescription: null
     }).rawValue, false);
   });
 
   it('fails when HTML contains an empty description meta tag', () => {
     return assert.equal(Audit.audit({
-      Description: ''
+      MetaDescription: ''
     }).rawValue, false);
   });
 
   it('passes when a description text is provided', () => {
     return assert.equal(Audit.audit({
-      Description: 'description text'
+      MetaDescription: 'description text'
     }).rawValue, true);
   });
 });

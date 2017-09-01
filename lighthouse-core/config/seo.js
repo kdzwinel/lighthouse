@@ -8,13 +8,13 @@
 module.exports = {
   extends: 'lighthouse:default',
   passes: [{
-    passName: 'seoPass',
+    passName: 'defaultPass',
     gatherers: [
-      'seo/description',
+      'seo/meta-description',
     ]
   }],
   audits: [
-    'seo/meta-description'
+    'seo/meta-description',
   ],
   groups: {
     'seo-mobile': {

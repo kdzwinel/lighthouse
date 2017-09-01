@@ -7,19 +7,19 @@
 
 /* eslint-env mocha */
 
-const DescriptionGather = require('../../../../gather/gatherers/seo/description');
+const MetaDescriptionGather = require('../../../../gather/gatherers/seo/meta-description');
 const assert = require('assert');
 const EXAMPLE_DESCRIPTION = 'description text';
-let descriptionGather;
+let metaDescriptionGather;
 
 describe('Meta description gatherer', () => {
   // Reset the Gatherer before each test.
   beforeEach(() => {
-    descriptionGather = new DescriptionGather();
+    metaDescriptionGather = new MetaDescriptionGather();
   });
 
   it('returns an artifact', () => {
-    return descriptionGather.afterPass({
+    return metaDescriptionGather.afterPass({
       driver: {
         querySelector() {
           return Promise.resolve({
