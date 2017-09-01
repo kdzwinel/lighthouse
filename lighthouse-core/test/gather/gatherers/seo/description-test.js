@@ -9,7 +9,7 @@
 
 const DescriptionGather = require('../../../../gather/gatherers/seo/description');
 const assert = require('assert');
-const testDescription = 'description text';
+const EXAMPLE_DESCRIPTION = 'description text';
 let descriptionGather;
 
 describe('Meta description gatherer', () => {
@@ -23,12 +23,12 @@ describe('Meta description gatherer', () => {
       driver: {
         querySelector() {
           return Promise.resolve({
-            getAttribute: () => testDescription
+            getAttribute: () => EXAMPLE_DESCRIPTION
           });
         }
       }
     }).then(artifact => {
-      assert.equal(artifact, testDescription);
+      assert.equal(artifact, EXAMPLE_DESCRIPTION);
     });
   });
 });
