@@ -7,6 +7,20 @@
 
 module.exports = {
   extends: 'lighthouse:default',
+  passes: [{
+    passName: 'seoPass',
+    recordTrace: true,
+    pauseAfterLoadMs: 5250,
+    networkQuietThresholdMs: 5250,
+    cpuQuietThresholdMs: 5250,
+    useThrottling: true,
+    gatherers: [
+      'seo/description',
+    ]
+  }],
+  audits: [
+    'seo/description'
+  ],
   groups: {
     'seo-mobile': {
       title: 'Mobile Friendly',
@@ -28,8 +42,9 @@ module.exports = {
       description: 'These ensure your app is able to be understood by search engine crawlers.',
       audits: [
         {id: 'meta-viewport', weight: 1, group: 'seo-mobile'},
-        {id: 'document-title', weight: 1, group: 'seo-content'}
+        {id: 'document-title', weight: 1, group: 'seo-content'},
+        {id: 'meta-description', weight: 1, group: 'seo-content'}
       ]
     }
-  }
+  },
 };
