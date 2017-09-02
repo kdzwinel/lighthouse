@@ -23,6 +23,12 @@ describe('SEO: description audit', () => {
     }).rawValue, false);
   });
 
+  it('fails when description consists only of whitespace', () => {
+    return assert.equal(Audit.audit({
+      MetaDescription: '    '
+    }).rawValue, false);
+  });
+
   it('passes when a description text is provided', () => {
     return assert.equal(Audit.audit({
       MetaDescription: 'description text'

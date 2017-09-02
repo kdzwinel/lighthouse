@@ -29,8 +29,22 @@ class Description extends Audit {
    * @return {!AuditResult}
    */
   static audit(artifacts) {
+    if (artifacts.MetaDescription === null) {
+      return {
+        rawValue: false,
+        debugString: 'Description meta tag is missing.'
+      };
+    }
+
+    if (artifacts.MetaDescription.trim().length === 0) {
+      return {
+        rawValue: false,
+        debugString: 'Description text is empty.'
+      };
+    }
+
     return {
-      rawValue: (artifacts.MetaDescription !== null && artifacts.MetaDescription.length > 0)
+      rawValue: true
     };
   }
 }
