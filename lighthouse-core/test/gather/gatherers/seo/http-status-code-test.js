@@ -7,7 +7,7 @@
 
 /* eslint-env mocha */
 
-const HTTPStatusCode = require('../../../gather/gatherers/http-status-code');
+const HTTPStatusCode = require('../../../../gather/gatherers/seo/http-status-code');
 const assert = require('assert');
 let httpStatusCode;
 
