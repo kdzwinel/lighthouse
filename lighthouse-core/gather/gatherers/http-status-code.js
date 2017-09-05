@@ -5,18 +5,20 @@
  */
 
  /**
-  * @fileoverview Determines optimized gzip/br/deflate filesizes for all responses by
-  *   checking the content-encoding header.
+  * @fileoverview Returns HTTP status code of the primary resource. Follows redirects.
   */
   'use strict';
 
   const Gatherer = require('./gatherer');
+  const HTTP_REDIRECT_CODE_LOW = 300;
+  const HTTP_REDIRECT_CODE_HIGH = 399;
 
   class HTTPStatusCode extends Gatherer {
 
     afterPass(options, traceData) {
       const mainResource = traceData.networkRecords
-        .find(record => record.statusCode < 300 || record.statusCode > 399);
+        .find(record => record.statusCode < HTTP_REDIRECT_CODE_LOW ||
+          record.statusCode > HTTP_REDIRECT_CODE_HIGH);
 
       return mainResource && mainResource.statusCode;
     }
