@@ -12,21 +12,27 @@ const assert = require('assert');
 
 describe('SEO: description audit', () => {
   it('fails when HTML does not contain a description meta tag', () => {
-    return assert.equal(Audit.audit({
+    const auditResult = Audit.audit({
       MetaDescription: null
-    }).rawValue, false);
+    });
+    assert.equal(auditResult.rawValue, false);
+    assert.ok(auditResult.debugString);
   });
 
   it('fails when HTML contains an empty description meta tag', () => {
-    return assert.equal(Audit.audit({
+    const auditResult = Audit.audit({
       MetaDescription: ''
-    }).rawValue, false);
+    });
+    assert.equal(auditResult.rawValue, false);
+    assert.ok(auditResult.debugString);
   });
 
   it('fails when description consists only of whitespace', () => {
-    return assert.equal(Audit.audit({
-      MetaDescription: '    '
-    }).rawValue, false);
+    const auditResult = Audit.audit({
+      MetaDescription: '	 '
+    });
+    assert.equal(auditResult.rawValue, false);
+    assert.ok(auditResult.debugString);
   });
 
   it('passes when a description text is provided', () => {
