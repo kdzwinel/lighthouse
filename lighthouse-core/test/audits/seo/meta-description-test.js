@@ -16,7 +16,6 @@ describe('SEO: description audit', () => {
       MetaDescription: null
     });
     assert.equal(auditResult.rawValue, false);
-    assert.ok(auditResult.debugString);
   });
 
   it('fails when HTML contains an empty description meta tag', () => {
@@ -24,7 +23,7 @@ describe('SEO: description audit', () => {
       MetaDescription: ''
     });
     assert.equal(auditResult.rawValue, false);
-    assert.ok(auditResult.debugString);
+    assert.ok(auditResult.debugString.includes('empty'), auditResult.debugString);
   });
 
   it('fails when description consists only of whitespace', () => {
@@ -32,7 +31,7 @@ describe('SEO: description audit', () => {
       MetaDescription: '	 '
     });
     assert.equal(auditResult.rawValue, false);
-    assert.ok(auditResult.debugString);
+    assert.ok(auditResult.debugString.includes('empty'), auditResult.debugString);
   });
 
   it('passes when a description text is provided', () => {

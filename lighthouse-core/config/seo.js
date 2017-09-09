@@ -38,7 +38,7 @@ module.exports = {
       audits: [
         {id: 'meta-viewport', weight: 1, group: 'seo-mobile'},
         {id: 'document-title', weight: 1, group: 'seo-content'},
-        {id: 'meta-description', weight: 1, group: 'seo-content'}
+        {id: 'meta-description', weight: 1, group: 'seo-content'},
       ]
     }
   }

@@ -31,8 +31,7 @@ class Description extends Audit {
   static audit(artifacts) {
     if (artifacts.MetaDescription === null) {
       return {
-        rawValue: false,
-        debugString: 'Description meta tag is missing.'
+        rawValue: false
       };
     }
 
