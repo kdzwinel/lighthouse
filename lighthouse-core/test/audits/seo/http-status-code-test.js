@@ -12,18 +12,22 @@ const assert = require('assert');
 
 describe('SEO: HTTP code audit', () => {
   it('fails when status code is empty', () => {
-    return assert.equal(Audit.audit({
+    const auditResult = Audit.audit({
       HTTPStatusCode: null
-    }).rawValue, false);
+    });
+    assert.equal(auditResult.rawValue, false);
+    assert.ok(auditResult.debugString.includes('found'));
   });
 
   it('fails when status code is unsuccesfull', () => {
     const statusCodes = [403, 404, 500];
 
     statusCodes.forEach(statusCode => {
-      assert.equal(Audit.audit({
+      const auditResult = Audit.audit({
         HTTPStatusCode: statusCode
-      }).rawValue, false);
+      });
+      assert.equal(auditResult.rawValue, false);
+      assert.ok(auditResult.displayValue.includes(statusCode), false);
     });
   });
 

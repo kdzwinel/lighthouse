@@ -38,18 +38,11 @@ class HTTPStatusCode extends Audit {
       };
     }
 
-    if(!Number.isInteger(artifacts.HTTPStatusCode)) {
-      return {
-        rawValue: false,
-        debugString: `Invalid HTTP status code value: "${artifacts.HTTPStatusCode}"`
-      };
-    }
-
     if (artifacts.HTTPStatusCode >= HTTP_UNSUCCESSFUL_CODE_LOW &&
       artifacts.HTTPStatusCode <= HTTP_UNSUCCESSFUL_CODE_HIGH) {
       return {
         rawValue: false,
-        displayValue: `${artifacts.HTTPStatusCode} is not a successful HTTP response code`
+        displayValue: `${artifacts.HTTPStatusCode}`
       };
     }
 
