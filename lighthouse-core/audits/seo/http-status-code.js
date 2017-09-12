@@ -17,11 +17,11 @@ class HTTPStatusCode extends Audit {
     return {
       category: 'Crawling and Indexing',
       name: 'http-status-code',
-      description: 'Page has successful HTTP status code',
-      failureDescription: 'Page doesn\'t have a successful HTTP response code',
-      helpText: 'The HTTP status code tells crawlers whether a URL leads to a valid page or not. ' +
-          'Pages with unsuccessful status codes may not be indexed properly. Learn more about ' +
-          'the [HTTP status codes](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes).',
+      description: 'Page has successful HTTP status code.',
+      failureDescription: 'Page has unsuccessful HTTP status code',
+      helpText: 'Pages with unsuccessful HTTP status codes may not be indexed properly. ' +
+          '[Learn more]' +
+          '(https://developers.goole.com/web/tools/lighthouse/audits/successful-http-code).',
       requiredArtifacts: ['HTTPStatusCode']
     };
   }
