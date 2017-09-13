@@ -28,8 +28,8 @@ module.exports = [
     },
   },
   {
-    initialUrl: 'http://localhost:10200/seo/seo-failure-cases.html',
-    url: 'http://localhost:10200/seo/seo-failure-cases.html',
+    initialUrl: 'http://localhost:10200/seo/seo-failure-cases.html?status_code=403',
+    url: 'http://localhost:10200/seo/seo-failure-cases.html?status_code=403',
     audits: {
       'viewport': {
         score: false,
@@ -53,7 +53,7 @@ module.exports = [
     audits: {
       'http-status-code': {
         score: false,
-      }
-    }
+      },
+    },
   },
 ];
