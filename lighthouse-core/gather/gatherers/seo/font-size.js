@@ -6,17 +6,40 @@
 'use strict';
 
 const Gatherer = require('../gatherer');
+const DOMHelpers = require('../../../lib/dom-helpers.js');
 
 class FontSize extends Gatherer {
 
   /**
    * @param {{driver: !Object}} options Run options
-   * @return {!Promise<string>} The font-size value of the document body
+   * @return {!Promise<Object<int,int>>} The font-size value of the document body
    */
   afterPass(options) {
-    const driver = options.driver;
+    const expression = `(function() {
+      ${DOMHelpers.getElementsInDocumentFnString}; // define function on page
+      const elements = getElementsInDocument('body *');
 
-    return driver.evaluateAsync('getComputedStyle(document.body).fontSize');
+      return elements.reduce((result, element) => {
+        const textLength = Array.from(element.childNodes)
+          .filter(node => node.nodeType === Node.TEXT_NODE)
+          .reduce((sum, textNode) => sum + textNode.nodeValue.trim().length, 0);
+
+        if(textLength) {
+          const fontSize = parseInt(getComputedStyle(element)["font-size"], 10);
+
+          if (!result[fontSize]) {
+            result[fontSize] = {fontSize, textLength: 0, elements: []};
+          }
+
+          result[fontSize].textLength += textLength;
+          result[fontSize].elements.push(element.tagName);
+        }
+
+        return result;
+      }, {});
+    })()`;
+
+    return options.driver.evaluateAsync(expression);
   }
 }
 

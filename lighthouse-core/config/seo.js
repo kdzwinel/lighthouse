@@ -6,16 +6,19 @@
 'use strict';
 
 module.exports = {
-  extends: 'lighthouse:default',
+  // extends: 'lighthouse:default',
   passes: [{
     passName: 'defaultPass',
     gatherers: [
+      'viewport',
       'seo/meta-description',
+      'seo/font-size',
     ],
   }],
   audits: [
     'seo/meta-description',
     'seo/http-status-code',
+    'seo/font-size',
   ],
   groups: {
     'seo-mobile': {
@@ -41,6 +44,7 @@ module.exports = {
         {id: 'document-title', weight: 1, group: 'seo-content'},
         {id: 'meta-description', weight: 1, group: 'seo-content'},
         {id: 'http-status-code', weight: 1, group: 'seo-crawl'},
+        {id: 'font-size', weight: 1, group: 'seo-mobile'},
       ],
     },
   },

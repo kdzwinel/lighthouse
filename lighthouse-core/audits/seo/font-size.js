@@ -8,6 +8,7 @@
 const Audit = require('../audit');
 const ViewportAudit = require('../viewport');
 const MINIMAL_LEGIBLE_FONT_SIZE_PX = 16;
+const MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT = 75;
 
 class FontSize extends Audit {
   /**
@@ -40,16 +41,57 @@ class FontSize extends Audit {
       };
     }
 
-    const fontSizePx = artifacts.FontSize && parseInt(artifacts.FontSize, 10);
-    if (fontSizePx && fontSizePx < MINIMAL_LEGIBLE_FONT_SIZE_PX) {
+    let passingText = 0;
+    let failingText = 0;
+    const failingElements = [];
+
+    for(const key in artifacts.FontSize) {
+      if (!artifacts.FontSize.hasOwnProperty(key)) {
+        continue;
+      }
+
+      const result = artifacts.FontSize[key];
+
+      if (result.fontSize >= MINIMAL_LEGIBLE_FONT_SIZE_PX) {
+        passingText += result.textLength;
+      } else {
+        failingText += result.textLength;
+        result.elements.forEach(element => {
+          failingElements.push({element, fontSize: result.fontSize});
+        });
+      }
+    }
+
+    if (passingText === 0 && failingText === 0) {
+      return {
+        rawValue: true,
+        debugString: 'Page contains no text',
+      };
+    }
+
+    const percentageOfPassingText = passingText / (passingText + failingText) * 100;
+
+    if (percentageOfPassingText < MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT) {
+      const headings = [
+        {key: 'element', itemType: 'text', text: 'Element'},
+        {key: 'fontSize', itemType: 'text', text: 'Font Size'}
+      ];
+
+      const details = Audit.makeTableDetails(headings, failingElements);
+
       return {
         rawValue: false,
-        displayValue: `${fontSizePx}px`,
+        extendedInfo: {
+          value: failingElements
+        },
+        details,
+        debugString: `${(100 - percentageOfPassingText).toFixed(2)}% of text is too small.`,
       };
     }
 
     return {
       rawValue: true,
+      debugString: `${percentageOfPassingText.toFixed(2)}% of text is legible`
     };
   }
 }
