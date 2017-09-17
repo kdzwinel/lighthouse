@@ -6,7 +6,53 @@
 'use strict';
 
 const Gatherer = require('../gatherer');
-const DOMHelpers = require('../../../lib/dom-helpers.js');
+
+function findBody(node) {
+  const queue = [node];
+
+  while(queue.length > 0) {
+    const currentNode = queue.shift();
+
+    if(currentNode.nodeName === 'BODY') {
+      return currentNode;
+    }
+
+    if(currentNode.children) {
+      currentNode.children.forEach(child => queue.push(child));
+    }
+  }
+
+  return null;
+}
+
+function flattenTree(node) {
+  const flat = [node];
+  const queue = [node];
+
+  while(queue.length > 0) {
+    const currentNode = queue.shift();
+
+    if(currentNode.children) {
+      currentNode.children.forEach(child => {
+        flat.push(child);
+        queue.push(child);
+      });
+    }
+  }
+
+  return flat;
+}
+
+function getAllNodesFromBody(driver) {
+  return driver.sendCommand('DOM.enable')
+    .then(_ => driver.sendCommand('DOM.getDocument', {depth: -1, pierce: true}))
+    .then(result => {
+      driver.sendCommand('DOM.disable');
+
+      const body = findBody(result.root);
+      return body ? flattenTree(body) : [];
+    });
+}
 
 class FontSize extends Gatherer {
 
@@ -15,31 +61,12 @@ class FontSize extends Gatherer {
    * @return {!Promise<Object<int,int>>} The font-size value of the document body
    */
   afterPass(options) {
-    const expression = `(function() {
-      ${DOMHelpers.getElementsInDocumentFnString}; // define function on page
-      const elements = getElementsInDocument('body *');
+    return getAllNodesFromBody(options.driver).then(result => {
+      console.log('result', result.length);
 
-      return elements.reduce((result, element) => {
-        const textLength = Array.from(element.childNodes)
-          .filter(node => node.nodeType === Node.TEXT_NODE)
-          .reduce((sum, textNode) => sum + textNode.nodeValue.trim().length, 0);
-
-        if(textLength) {
-          const fontSize = parseInt(getComputedStyle(element)["font-size"], 10);
-
-          if (!result[fontSize]) {
-            result[fontSize] = {fontSize, textLength: 0, elements: []};
-          }
-
-          result[fontSize].textLength += textLength;
-          result[fontSize].elements.push(element.tagName);
-        }
-
-        return result;
-      }, {});
-    })()`;
-
-    return options.driver.evaluateAsync(expression);
+      //TODO
+      // driver.sendCommand('CSS.enable')
+    });
   }
 }
 
