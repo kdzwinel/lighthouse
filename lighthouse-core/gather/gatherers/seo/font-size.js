@@ -6,6 +6,7 @@
 'use strict';
 
 const Gatherer = require('../gatherer');
+const TEXT_NODE = 3;
 
 function findBody(node) {
   const queue = [node];
@@ -27,15 +28,14 @@ function findBody(node) {
 
 function flattenTree(node) {
   const flat = [node];
-  const queue = [node];
 
-  while(queue.length > 0) {
-    const currentNode = queue.shift();
+  for (let i = 0; i < flat.length; i++) {
+    const currentNode = flat[i];
 
     if(currentNode.children) {
       currentNode.children.forEach(child => {
+        child.parentNode = currentNode;
         flat.push(child);
-        queue.push(child);
       });
     }
   }
@@ -44,13 +44,34 @@ function flattenTree(node) {
 }
 
 function getAllNodesFromBody(driver) {
-  return driver.sendCommand('DOM.enable')
-    .then(_ => driver.sendCommand('DOM.getDocument', {depth: -1, pierce: true}))
+  return driver.sendCommand('DOM.getDocument', {depth: -1, pierce: true})
     .then(result => {
-      driver.sendCommand('DOM.disable');
-
       const body = findBody(result.root);
       return body ? flattenTree(body) : [];
+    });
+}
+
+function getFontSizeRule({inlineStyle, matchedCSSRules, inherited}) {
+
+  // TODO https://cs.chromium.org/chromium/src/third_party/WebKit/Source/devtools/front_end/sdk/CSSMatchedStyles.js?type=cs&q=SDK.CSSMatchedS&sq=package:chromium&l=1
+
+  return {};
+}
+
+function getFontSizeInformation(driver, node) {
+  const computedStyles = driver.sendCommand('CSS.getComputedStyleForNode', {nodeId: node.nodeId});
+  const matchedRules = driver.sendCommand('CSS.getMatchedStylesForNode', {nodeId: node.parentId});
+
+  return Promise.all([computedStyles, matchedRules])
+    .then(result => {
+      const [{computedStyle}, matchedRules] = result;
+      const fontSizeProperty = computedStyle.find(({name}) => name === 'font-size');
+
+      return {
+        fontSize: parseInt(fontSizeProperty.value, 10),
+        textLength: node.nodeValue.trim().length,
+        cssRule: getFontSizeRule(matchedRules)
+      };
     });
 }
 
@@ -61,11 +82,21 @@ class FontSize extends Gatherer {
    * @return {!Promise<Object<int,int>>} The font-size value of the document body
    */
   afterPass(options) {
-    return getAllNodesFromBody(options.driver).then(result => {
-      console.log('result', result.length);
+    const enableDOM = options.driver.sendCommand('DOM.enable');
+    const enableCSS = options.driver.sendCommand('CSS.enable');
 
-      //TODO
-      // driver.sendCommand('CSS.enable')
+    return Promise.all([enableDOM, enableCSS])
+    .then(() => getAllNodesFromBody(options.driver))
+    .then(nodes => nodes.filter(node => node.nodeType === TEXT_NODE && node.nodeValue.trim().length > 0))
+    .then(textNodes => Promise.all(textNodes.map(node => getFontSizeInformation(options.driver, node))))
+    .then(fontSizeInfo => {
+      console.log(fontSizeInfo);
+      const result = {};
+
+      options.driver.sendCommand('DOM.disable');
+      options.driver.sendCommand('CSS.disable');
+
+      return result;
     });
   }
 }
