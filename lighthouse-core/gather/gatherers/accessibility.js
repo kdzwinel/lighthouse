@@ -5,10 +5,11 @@
  */
 'use strict';
 
-/* global window, document, Node */
+/* global window, document, getOuterHTMLSnippet, getNodePath */
 
 const Gatherer = require('./gatherer');
 const fs = require('fs');
+const DOMHelpers = require('../../lib/dom-helpers');
 const axeLibSource = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
 // This is run in the page, not Lighthouse itself.
@@ -46,42 +47,6 @@ function runA11yChecks() {
     axeResult = {violations: axeResult.violations};
     return axeResult;
   });
-
-  // Adapted from DevTools' SDK.DOMNode.prototype.path
-  //   https://github.com/ChromeDevTools/devtools-frontend/blob/7a2e162ddefd/front_end/sdk/DOMModel.js#L530-L552
-  // TODO: Doesn't handle frames or shadow roots...
-  function getNodePath(node) {
-    function getNodeIndex(node) {
-      let index = 0;
-      while (node = node.previousSibling) {
-        // skip empty text nodes
-        if (node.nodeType === Node.TEXT_NODE &&
-          node.textContent.trim().length === 0) continue;
-        index++;
-      }
-      return index;
-    }
-
-    const path = [];
-    while (node && node.parentNode) {
-      const index = getNodeIndex(node);
-      path.push([index, node.nodeName]);
-      node = node.parentNode;
-    }
-    path.reverse();
-    return path.join(',');
-  }
-
-  /**
-   * Gets the opening tag text of the given node.
-   * @param {!Node}
-   * @return {string}
-   */
-  function getOuterHTMLSnippet(node) {
-    const reOpeningTag = /^.*?\>/;
-    const match = node.outerHTML.match(reOpeningTag);
-    return match && match[0];
-  }
 }
 
 class Accessibility extends Gatherer {
@@ -92,6 +57,8 @@ class Accessibility extends Gatherer {
   afterPass(options) {
     const driver = options.driver;
     const expression = `(function () {
+      ${DOMHelpers.getOuterHTMLSnippet};
+      ${DOMHelpers.getNodePath};
       ${axeLibSource};
       return (${runA11yChecks.toString()}());
     })()`;

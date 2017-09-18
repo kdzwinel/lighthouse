@@ -5,24 +5,14 @@
  */
 'use strict';
 
-/* global document ClipboardEvent */
+/* global document ClipboardEvent getOuterHTMLSnippet */
 
 const Gatherer = require('../gatherer');
+const DOMHelpers = require('../../../lib/dom-helpers');
 
 // This is run in the page, not Lighthouse itself.
 /* istanbul ignore next */
 function findPasswordInputsWithPreventedPaste() {
-  /**
-   * Gets the opening tag text of the given node.
-   * @param {!Node}
-   * @return {string}
-   */
-  function getOuterHTMLSnippet(node) {
-    const reOpeningTag = /^.*?\>/;
-    const match = node.outerHTML.match(reOpeningTag);
-    return match && match[0];
-  }
-
   return Array.from(document.querySelectorAll('input[type="password"]'))
     .filter(passwordInput =>
       !passwordInput.dispatchEvent(
@@ -41,9 +31,10 @@ class PasswordInputsWithPreventedPaste extends Gatherer {
    */
   afterPass(options) {
     const driver = options.driver;
-    return driver.evaluateAsync(
-      `(${findPasswordInputsWithPreventedPaste.toString()}())`
-    );
+    return driver.evaluateAsync(`(function () {
+      ${DOMHelpers.getOuterHTMLSnippet};
+      return (${findPasswordInputsWithPreventedPaste.toString()}());
+    })()`);
   }
 }
 

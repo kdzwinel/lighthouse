@@ -7,6 +7,8 @@
 
 const Gatherer = require('../gatherer');
 const DOMHelpers = require('../../../lib/dom-helpers.js');
+const fs = require('fs');
+const axeLibSource = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
 class FontSize extends Gatherer {
 
@@ -16,7 +18,10 @@ class FontSize extends Gatherer {
    */
   afterPass(options) {
     const expression = `(function() {
-      ${DOMHelpers.getElementsInDocumentFnString}; // define function on page
+      ${axeLibSource};
+      ${DOMHelpers.getNodePath};
+      ${DOMHelpers.getOuterHTMLSnippet};
+      ${DOMHelpers.getElementsInDocumentFnString};
       const elements = getElementsInDocument('body *');
 
       return elements.reduce((result, element) => {
@@ -32,7 +37,12 @@ class FontSize extends Gatherer {
           }
 
           result[fontSize].textLength += textLength;
-          result[fontSize].elements.push(element.tagName);
+          result[fontSize].elements.push({
+            type: 'node',
+            path: getNodePath(element),
+            selector: axe.utils.getSelector(element),
+            snippet: getOuterHTMLSnippet(element)
+          });
         }
 
         return result;

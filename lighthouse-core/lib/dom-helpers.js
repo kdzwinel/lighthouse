@@ -10,12 +10,12 @@
  * methods are intended to be injected into and run in the context of the page.
  */
 
-/* global document */
+/* global document, Node */
 
 /**
  * @param {string=} selector Optional simple CSS selector to filter nodes on.
  *     Combinators are not supported.
- * @param {!Array<!Element>}
+ * @return {!Array<!Element>}
  */
 function getElementsInDocument(selector) {
   const results = [];
@@ -36,6 +36,48 @@ function getElementsInDocument(selector) {
   return results;
 }
 
+/**
+ * Adapted from DevTools' SDK.DOMNode.prototype.path
+ * https://github.com/ChromeDevTools/devtools-frontend/blob/7a2e162ddefd/front_end/sdk/DOMModel.js#L530-L552
+ * TODO: Doesn't handle frames or shadow roots...
+ * @param {!Node} node
+ * @return {string}
+ */
+function getNodePath(node) {
+  function getNodeIndex(node) {
+    let index = 0;
+    while (node = node.previousSibling) {
+      // skip empty text nodes
+      if (node.nodeType === Node.TEXT_NODE &&
+        node.textContent.trim().length === 0) continue;
+      index++;
+    }
+    return index;
+  }
+
+  const path = [];
+  while (node && node.parentNode) {
+    const index = getNodeIndex(node);
+    path.push([index, node.nodeName]);
+    node = node.parentNode;
+  }
+  path.reverse();
+  return path.join(',');
+}
+
+/**
+ * Gets the opening tag text of the given node.
+ * @param {!Node}
+ * @return {string}
+ */
+function getOuterHTMLSnippet(node) {
+  const reOpeningTag = /^.*?\>/;
+  const match = node.outerHTML.match(reOpeningTag);
+  return match && match[0];
+}
+
 module.exports = {
-  getElementsInDocumentFnString: getElementsInDocument.toString()
+  getElementsInDocumentFnString: getElementsInDocument.toString(),
+  getOuterHTMLSnippet: getOuterHTMLSnippet.toString(),
+  getNodePath: getNodePath.toString()
 };

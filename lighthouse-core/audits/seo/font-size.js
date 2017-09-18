@@ -24,7 +24,7 @@ class FontSize extends Audit {
       helpText: 'Font sizes less than 16px are too small to be legible and require mobile ' +
         'visitors to “pinch to zoom” in order to read. ' +
         '[Learn more](https://developers.google.com/speed/docs/insights/UseLegibleFontSizes).',
-      requiredArtifacts: ['FontSize']
+      requiredArtifacts: ['FontSize', 'Viewport']
     };
   }
 
@@ -73,7 +73,7 @@ class FontSize extends Audit {
 
     if (percentageOfPassingText < MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT) {
       const headings = [
-        {key: 'element', itemType: 'text', text: 'Element'},
+        {key: 'element', itemType: 'node', text: 'Element'},
         {key: 'fontSize', itemType: 'text', text: 'Font Size'}
       ];
 
