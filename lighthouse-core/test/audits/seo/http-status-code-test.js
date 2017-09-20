@@ -11,29 +11,56 @@ const assert = require('assert');
 /* eslint-env mocha */
 
 describe('SEO: HTTP code audit', () => {
-  it('fails when status code is empty', () => {
-    const auditResult = Audit.audit({
-      HTTPStatusCode: null
+  it('fails when main resource is missing', () => {
+    const mainResource = null;
+
+    const artifacts = {
+      devtoolsLogs: {[Audit.DEFAULT_PASS]: []},
+      requestNetworkRecords: () => Promise.resolve(),
+      requestMainResource: () => Promise.resolve(mainResource),
+    };
+
+    return Audit.audit(artifacts).then(auditResult => {
+      assert.equal(auditResult.rawValue, false);
+      assert.ok(auditResult.debugString.includes('Invalid'));
     });
-    assert.equal(auditResult.rawValue, false);
-    assert.ok(auditResult.debugString.includes('found'));
   });
 
   it('fails when status code is unsuccesfull', () => {
     const statusCodes = [403, 404, 500];
 
-    statusCodes.forEach(statusCode => {
-      const auditResult = Audit.audit({
-        HTTPStatusCode: statusCode
+    const allRuns = statusCodes.map(statusCode => {
+      const mainResource = {
+        statusCode
+      };
+      const artifacts = {
+        devtoolsLogs: {[Audit.DEFAULT_PASS]: []},
+        requestNetworkRecords: () => Promise.resolve(),
+        requestMainResource: () => Promise.resolve(mainResource),
+      };
+
+      return Audit.audit(artifacts).then(auditResult => {
+        assert.equal(auditResult.rawValue, false);
+        assert.ok(auditResult.displayValue.includes(statusCode), false);
       });
-      assert.equal(auditResult.rawValue, false);
-      assert.ok(auditResult.displayValue.includes(statusCode), false);
     });
+
+    return Promise.all(allRuns);
   });
 
   it('passes when status code is successful', () => {
-    assert.equal(Audit.audit({
-      HTTPStatusCode: 200
-    }).rawValue, true);
+    const mainResource = {
+      statusCode: 200
+    };
+
+    const artifacts = {
+      devtoolsLogs: {[Audit.DEFAULT_PASS]: []},
+      requestNetworkRecords: () => Promise.resolve(),
+      requestMainResource: () => Promise.resolve(mainResource),
+    };
+
+    return Audit.audit(artifacts).then(auditResult => {
+      assert.equal(auditResult.rawValue, true);
+    });
   });
 });

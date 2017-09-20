@@ -20,9 +20,9 @@ class HTTPStatusCode extends Audit {
       description: 'Page has successful HTTP status code.',
       failureDescription: 'Page has unsuccessful HTTP status code',
       helpText: 'Pages with unsuccessful HTTP status codes may not be indexed properly. ' +
-          '[Learn more]' +
-          '(https://developers.goole.com/web/tools/lighthouse/audits/successful-http-code).',
-      requiredArtifacts: ['HTTPStatusCode']
+      '[Learn more]' +
+      '(https://developers.goole.com/web/tools/lighthouse/audits/successful-http-code).',
+      requiredArtifacts: ['devtoolsLogs']
     };
   }
 
@@ -31,24 +31,32 @@ class HTTPStatusCode extends Audit {
    * @return {!AuditResult}
    */
   static audit(artifacts) {
-    if (!artifacts.HTTPStatusCode) {
-      return {
-        rawValue: false,
-        debugString: 'No HTTPStatusCode found in trace.'
-      };
-    }
+    const devtoolsLogs = artifacts.devtoolsLogs[Audit.DEFAULT_PASS];
 
-    if (artifacts.HTTPStatusCode >= HTTP_UNSUCCESSFUL_CODE_LOW &&
-      artifacts.HTTPStatusCode <= HTTP_UNSUCCESSFUL_CODE_HIGH) {
-      return {
-        rawValue: false,
-        displayValue: `${artifacts.HTTPStatusCode}`
-      };
-    }
+    return artifacts.requestNetworkRecords(devtoolsLogs)
+      .then(networkRecords => artifacts.requestMainResource(networkRecords))
+      .then(mainResource => {
+        const statusCode = mainResource && mainResource.statusCode;
 
-    return {
-      rawValue: true
-    };
+        if (!statusCode) {
+          return {
+            rawValue: false,
+            debugString: 'Invalid MainResouce or its status code.'
+          };
+        }
+
+        if (statusCode >= HTTP_UNSUCCESSFUL_CODE_LOW &&
+          statusCode <= HTTP_UNSUCCESSFUL_CODE_HIGH) {
+          return {
+            rawValue: false,
+            displayValue: `${statusCode}`
+          };
+        }
+
+        return {
+          rawValue: true
+        };
+      });
   }
 }
 
