@@ -45,12 +45,6 @@ module.exports = [
       'meta-description': {
         score: false,
       },
-    },
-  },
-  {
-    initialUrl: 'http://localhost:10200/seo/seo-failure-cases-404.html',
-    url: 'http://localhost:10200/seo/seo-failure-cases-404.html',
-    audits: {
       'http-status-code': {
         score: false,
       },
