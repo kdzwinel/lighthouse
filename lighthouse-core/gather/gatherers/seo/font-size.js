@@ -55,6 +55,12 @@ function getFontSizeRule({inlineStyle, matchedCSSRules, inherited}) {
 
   // TODO https://cs.chromium.org/chromium/src/third_party/WebKit/Source/devtools/front_end/sdk/CSSMatchedStyles.js?type=cs&q=SDK.CSSMatchedS&sq=package:chromium&l=1
 
+  console.log(JSON.stringify(inlineStyle));
+  console.log('----');
+  console.log(JSON.stringify(matchedCSSRules));
+  console.log('----');
+  console.log(JSON.stringify(inherited));
+
   return {};
 }
 
