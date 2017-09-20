@@ -19,10 +19,10 @@ describe('MainResource computed artifact', () => {
 
   it('returns an artifact', () => {
     const record = {
-      statusCode: 404
+      statusCode: 404,
     };
     const networkRecords = [
-      record
+      record,
     ];
 
     return computedArtifacts.requestMainResource(networkRecords).then(output => {
@@ -32,16 +32,16 @@ describe('MainResource computed artifact', () => {
 
   it('should ignore redirects', () => {
     const record = {
-      statusCode: 404
+      statusCode: 404,
     };
     const networkRecords = [
       {
-        statusCode: 301
+        statusCode: 301,
       },
       {
-        statusCode: 302
+        statusCode: 302,
       },
-      record
+      record,
     ];
 
     return computedArtifacts.requestMainResource(networkRecords).then(output => {

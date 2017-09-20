@@ -31,7 +31,7 @@ describe('SEO: HTTP code audit', () => {
 
     const allRuns = statusCodes.map(statusCode => {
       const mainResource = {
-        statusCode
+        statusCode,
       };
       const artifacts = {
         devtoolsLogs: {[Audit.DEFAULT_PASS]: []},
@@ -50,7 +50,7 @@ describe('SEO: HTTP code audit', () => {
 
   it('passes when status code is successful', () => {
     const mainResource = {
-      statusCode: 200
+      statusCode: 200,
     };
 
     const artifacts = {

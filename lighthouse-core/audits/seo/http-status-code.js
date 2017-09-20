@@ -22,7 +22,7 @@ class HTTPStatusCode extends Audit {
       helpText: 'Pages with unsuccessful HTTP status codes may not be indexed properly. ' +
       '[Learn more]' +
       '(https://developers.goole.com/web/tools/lighthouse/audits/successful-http-code).',
-      requiredArtifacts: ['devtoolsLogs']
+      requiredArtifacts: ['devtoolsLogs'],
     };
   }
 
@@ -41,7 +41,7 @@ class HTTPStatusCode extends Audit {
         if (!statusCode) {
           return {
             rawValue: false,
-            debugString: 'Invalid MainResouce or its status code.'
+            debugString: 'Invalid MainResouce or its status code.',
           };
         }
 
@@ -49,12 +49,12 @@ class HTTPStatusCode extends Audit {
           statusCode <= HTTP_UNSUCCESSFUL_CODE_HIGH) {
           return {
             rawValue: false,
-            displayValue: `${statusCode}`
+            displayValue: `${statusCode}`,
           };
         }
 
         return {
-          rawValue: true
+          rawValue: true,
         };
       });
   }
