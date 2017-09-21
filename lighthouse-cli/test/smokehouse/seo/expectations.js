@@ -47,6 +47,7 @@ module.exports = [
       },
       'http-status-code': {
         score: false,
+        displayValue: '403',
       },
     },
   },

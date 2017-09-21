@@ -9,18 +9,32 @@ const ComputedArtifact = require('./computed-artifact');
 const HTTP_REDIRECT_CODE_LOW = 300;
 const HTTP_REDIRECT_CODE_HIGH = 399;
 
+/**
+ * @fileoverview This artifact identifies the main resource on the page. Current solution assumes
+ * that the main resource is the first non-rediected one.
+ */
 class MainResource extends ComputedArtifact {
   get name() {
     return 'MainResource';
   }
 
   /**
-   * @param {!Array<!WebInspector.NetworkRequest>} networkRecords
+   * @param {WebInspector.NetworkRequest} record
+   * @return {boolean}
+   */
+  isMainResource(request) {
+    return request.statusCode < HTTP_REDIRECT_CODE_LOW ||
+      request.statusCode > HTTP_REDIRECT_CODE_HIGH;
+  }
+
+  /**
+   * @param {!DevtoolsLog} devtoolsLog
+   * @param {!ComputedArtifacts} artifacts
    * @return {?WebInspector.NetworkRequest}
    */
-  compute_(networkRecords) {
-    return networkRecords.find(record => record.statusCode < HTTP_REDIRECT_CODE_LOW ||
-      record.statusCode > HTTP_REDIRECT_CODE_HIGH);
+  compute_(devtoolsLog, artifacts) {
+    return artifacts.requestNetworkRecords(devtoolsLog)
+      .then(requests => requests.find(this.isMainResource));
   }
 }
 

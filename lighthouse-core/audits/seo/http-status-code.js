@@ -33,8 +33,7 @@ class HTTPStatusCode extends Audit {
   static audit(artifacts) {
     const devtoolsLogs = artifacts.devtoolsLogs[Audit.DEFAULT_PASS];
 
-    return artifacts.requestNetworkRecords(devtoolsLogs)
-      .then(networkRecords => artifacts.requestMainResource(networkRecords))
+    return artifacts.requestMainResource(devtoolsLogs)
       .then(mainResource => {
         const statusCode = mainResource && mainResource.statusCode;
 

@@ -24,8 +24,9 @@ describe('MainResource computed artifact', () => {
     const networkRecords = [
       record,
     ];
+    computedArtifacts.requestNetworkRecords = _ => Promise.resolve(networkRecords);
 
-    return computedArtifacts.requestMainResource(networkRecords).then(output => {
+    return computedArtifacts.requestMainResource({}).then(output => {
       assert.equal(output, record);
     });
   });
@@ -43,8 +44,9 @@ describe('MainResource computed artifact', () => {
       },
       record,
     ];
+    computedArtifacts.requestNetworkRecords = _ => Promise.resolve(networkRecords);
 
-    return computedArtifacts.requestMainResource(networkRecords).then(output => {
+    return computedArtifacts.requestMainResource({}).then(output => {
       assert.equal(output, record);
     });
   });

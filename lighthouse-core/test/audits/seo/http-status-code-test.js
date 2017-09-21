@@ -5,7 +5,7 @@
  */
 'use strict';
 
-const Audit = require('../../../audits/seo/http-status-code.js');
+const HTTPStatusCodeAudit = require('../../../audits/seo/http-status-code.js');
 const assert = require('assert');
 
 /* eslint-env mocha */
@@ -15,12 +15,12 @@ describe('SEO: HTTP code audit', () => {
     const mainResource = null;
 
     const artifacts = {
-      devtoolsLogs: {[Audit.DEFAULT_PASS]: []},
+      devtoolsLogs: {[HTTPStatusCodeAudit.DEFAULT_PASS]: []},
       requestNetworkRecords: () => Promise.resolve(),
       requestMainResource: () => Promise.resolve(mainResource),
     };
 
-    return Audit.audit(artifacts).then(auditResult => {
+    return HTTPStatusCodeAudit.audit(artifacts).then(auditResult => {
       assert.equal(auditResult.rawValue, false);
       assert.ok(auditResult.debugString.includes('Invalid'));
     });
@@ -34,12 +34,12 @@ describe('SEO: HTTP code audit', () => {
         statusCode,
       };
       const artifacts = {
-        devtoolsLogs: {[Audit.DEFAULT_PASS]: []},
+        devtoolsLogs: {[HTTPStatusCodeAudit.DEFAULT_PASS]: []},
         requestNetworkRecords: () => Promise.resolve(),
         requestMainResource: () => Promise.resolve(mainResource),
       };
 
-      return Audit.audit(artifacts).then(auditResult => {
+      return HTTPStatusCodeAudit.audit(artifacts).then(auditResult => {
         assert.equal(auditResult.rawValue, false);
         assert.ok(auditResult.displayValue.includes(statusCode), false);
       });
@@ -54,12 +54,12 @@ describe('SEO: HTTP code audit', () => {
     };
 
     const artifacts = {
-      devtoolsLogs: {[Audit.DEFAULT_PASS]: []},
+      devtoolsLogs: {[HTTPStatusCodeAudit.DEFAULT_PASS]: []},
       requestNetworkRecords: () => Promise.resolve(),
       requestMainResource: () => Promise.resolve(mainResource),
     };
 
-    return Audit.audit(artifacts).then(auditResult => {
+    return HTTPStatusCodeAudit.audit(artifacts).then(auditResult => {
       assert.equal(auditResult.rawValue, true);
     });
   });
