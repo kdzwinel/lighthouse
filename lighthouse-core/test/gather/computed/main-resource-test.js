@@ -31,6 +31,21 @@ describe('MainResource computed artifact', () => {
     });
   });
 
+  it('thows when main resource can\'t be found', () => {
+    const networkRecords = [
+      {
+        statusCode: 302,
+      },
+    ];
+    computedArtifacts.requestNetworkRecords = _ => Promise.resolve(networkRecords);
+
+    return computedArtifacts.requestMainResource({}).then(() => {
+      assert.ok(false, 'should have thrown');
+    }).catch(err => {
+      assert.equal(err.message, 'Unable to identify the main resource');
+    });
+  });
+
   it('should ignore redirects', () => {
     const record = {
       statusCode: 404,
@@ -48,6 +63,14 @@ describe('MainResource computed artifact', () => {
 
     return computedArtifacts.requestMainResource({}).then(output => {
       assert.equal(output, record);
+    });
+  });
+
+  it('should identify correct main resource in the wikipedia fixture', () => {
+    const wikiDevtoolsLog = require('../../fixtures/wikipedia-redirect.devtoolslog.json');
+
+    return computedArtifacts.requestMainResource(wikiDevtoolsLog).then(output => {
+      assert.equal(output.url, 'https://en.m.wikipedia.org/wiki/Main_Page');
     });
   });
 });

@@ -11,21 +11,6 @@ const assert = require('assert');
 /* eslint-env mocha */
 
 describe('SEO: HTTP code audit', () => {
-  it('fails when main resource is missing', () => {
-    const mainResource = null;
-
-    const artifacts = {
-      devtoolsLogs: {[HTTPStatusCodeAudit.DEFAULT_PASS]: []},
-      requestNetworkRecords: () => Promise.resolve(),
-      requestMainResource: () => Promise.resolve(mainResource),
-    };
-
-    return HTTPStatusCodeAudit.audit(artifacts).then(auditResult => {
-      assert.equal(auditResult.rawValue, false);
-      assert.ok(auditResult.debugString.includes('Invalid'));
-    });
-  });
-
   it('fails when status code is unsuccesfull', () => {
     const statusCodes = [403, 404, 500];
 

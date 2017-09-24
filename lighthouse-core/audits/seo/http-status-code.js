@@ -35,14 +35,7 @@ class HTTPStatusCode extends Audit {
 
     return artifacts.requestMainResource(devtoolsLogs)
       .then(mainResource => {
-        const statusCode = mainResource && mainResource.statusCode;
-
-        if (!statusCode) {
-          return {
-            rawValue: false,
-            debugString: 'Invalid MainResouce or its status code.',
-          };
-        }
+        const statusCode = mainResource.statusCode;
 
         if (statusCode >= HTTP_UNSUCCESSFUL_CODE_LOW &&
           statusCode <= HTTP_UNSUCCESSFUL_CODE_HIGH) {

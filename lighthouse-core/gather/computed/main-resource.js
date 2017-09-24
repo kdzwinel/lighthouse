@@ -30,11 +30,19 @@ class MainResource extends ComputedArtifact {
   /**
    * @param {!DevtoolsLog} devtoolsLog
    * @param {!ComputedArtifacts} artifacts
-   * @return {?WebInspector.NetworkRequest}
+   * @return {!WebInspector.NetworkRequest}
    */
   compute_(devtoolsLog, artifacts) {
     return artifacts.requestNetworkRecords(devtoolsLog)
-      .then(requests => requests.find(this.isMainResource));
+      .then(requests => {
+        const mainResoruce = requests.find(this.isMainResource);
+
+        if (!mainResoruce) {
+          throw new Error('Unable to identify the main resource');
+        }
+
+        return mainResoruce;
+      });
   }
 }
 
