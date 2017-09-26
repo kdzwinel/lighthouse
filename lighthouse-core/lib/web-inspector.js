@@ -24,6 +24,21 @@ module.exports = (function() {
     global.window = global;
   }
 
+  global.Node = {
+    ELEMENT_NODE: 1
+  };
+
+  global.CSSAgent = {};
+  global.CSSAgent.StyleSheetOrigin = {
+    INJECTED: 'injected',
+    USER_AGENT: 'user-agent',
+    INSPECTOR: 'inspector',
+    REGULAR: 'regular'
+  };
+
+  global.CSS = {};
+  global.CSS.supports = () => true;
+
   global.Runtime = global.Runtime || {};
 
   // Required for devtools-timeline-model
@@ -303,6 +318,19 @@ module.exports = (function() {
 
     return ast;
   };
+
+  // Dependecies for efective CSS rule calculation.
+  require('chrome-devtools-frontend/front_end/sdk/CSSMatchedStyles.js');
+  require('chrome-devtools-frontend/front_end/sdk/CSSMedia.js');
+  require('chrome-devtools-frontend/front_end/sdk/CSSMetadata.js');
+  require('chrome-devtools-frontend/front_end/sdk/CSSProperty.js');
+  require('chrome-devtools-frontend/front_end/sdk/CSSRule.js');
+  require('chrome-devtools-frontend/front_end/sdk/CSSStyleDeclaration.js');
+
+  WebInspector.CSSMetadata._generatedProperties = [
+    {"name":"font-size","inherited":true},
+    {"name":"color","inherited":true}
+  ];
 
   return WebInspector;
 })();

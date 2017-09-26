@@ -5,8 +5,10 @@
  */
 'use strict';
 
+const CSSMatchedStyles = require('../../../lib/web-inspector').CSSMatchedStyles;
 const Gatherer = require('../gatherer');
 const TEXT_NODE = 3;
+const FONT_SIZE_PROPERTY_NAME = 'font-size';
 
 function findBody(node) {
   const queue = [node];
@@ -51,17 +53,25 @@ function getAllNodesFromBody(driver) {
     });
 }
 
-function getFontSizeRule({inlineStyle, matchedCSSRules, inherited}) {
+function getFontSizeRule(node, {inlineStyle, matchedCSSRules, inherited}) {
+  const cssModel = {
+    styleSheetHeaderForId: id => {
+      return {id: id};
+    }
+  };
 
-  // TODO https://cs.chromium.org/chromium/src/third_party/WebKit/Source/devtools/front_end/sdk/CSSMatchedStyles.js?type=cs&q=SDK.CSSMatchedS&sq=package:chromium&l=1
+  const nodeType = node.nodeType;
+  node.nodeType = () => nodeType;
+  const matchedStyles = new CSSMatchedStyles(cssModel, node, inlineStyle, null, matchedCSSRules, null, inherited, null);
 
-  console.log(JSON.stringify(inlineStyle));
-  console.log('----');
-  console.log(JSON.stringify(matchedCSSRules));
-  console.log('----');
-  console.log(JSON.stringify(inherited));
+  const nodeStyles = matchedStyles.nodeStyles();
+  const matchingRule = nodeStyles.find(style => {
+    const property = style.allProperties.find(property => property.name === FONT_SIZE_PROPERTY_NAME);
+    return property &&
+      matchedStyles.propertyState(property) !== CSSMatchedStyles.PropertyState.Overloaded;
+  });
 
-  return {};
+  return matchingRule;
 }
 
 function getFontSizeInformation(driver, node) {
@@ -71,12 +81,12 @@ function getFontSizeInformation(driver, node) {
   return Promise.all([computedStyles, matchedRules])
     .then(result => {
       const [{computedStyle}, matchedRules] = result;
-      const fontSizeProperty = computedStyle.find(({name}) => name === 'font-size');
+      const fontSizeProperty = computedStyle.find(({name}) => name === FONT_SIZE_PROPERTY_NAME);
 
       return {
         fontSize: parseInt(fontSizeProperty.value, 10),
         textLength: node.nodeValue.trim().length,
-        cssRule: getFontSizeRule(matchedRules)
+        cssRule: getFontSizeRule(node, matchedRules)
       };
     });
 }
@@ -96,13 +106,10 @@ class FontSize extends Gatherer {
     .then(nodes => nodes.filter(node => node.nodeType === TEXT_NODE && node.nodeValue.trim().length > 0))
     .then(textNodes => Promise.all(textNodes.map(node => getFontSizeInformation(options.driver, node))))
     .then(fontSizeInfo => {
-      console.log(fontSizeInfo);
-      const result = {};
-
       options.driver.sendCommand('DOM.disable');
       options.driver.sendCommand('CSS.disable');
 
-      return result;
+      return fontSizeInfo;
     });
   }
 }

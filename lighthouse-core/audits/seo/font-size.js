@@ -43,24 +43,26 @@ class FontSize extends Audit {
 
     let passingText = 0;
     let failingText = 0;
-    const failingElements = [];
+    const failingRules = new Map();
 
-    for(const key in artifacts.FontSize) {
-      if (!artifacts.FontSize.hasOwnProperty(key)) {
-        continue;
-      }
-
-      const result = artifacts.FontSize[key];
-
-      if (result.fontSize >= MINIMAL_LEGIBLE_FONT_SIZE_PX) {
-        passingText += result.textLength;
+    artifacts.FontSize.forEach(item => {
+      if (item.fontSize >= MINIMAL_LEGIBLE_FONT_SIZE_PX) {
+        passingText += item.textLength;
       } else {
-        failingText += result.textLength;
-        result.elements.forEach(element => {
-          failingElements.push({element, fontSize: result.fontSize});
-        });
+        failingText += item.textLength;
+
+        const ruleKey = `${item.cssRule.styleSheetId}@${item.cssRule.range.startLine}:${item.cssRule.range.startColumn}`;
+
+        if(!failingRules.has(ruleKey)) {
+          failingRules.set(ruleKey, {
+            styleSheetId: item.cssRule.styleSheetId,
+            range: item.cssRule.range,
+            selectors: item.cssRule.parentRule.selectors,
+            fontSize: item.fontSize
+          });
+        }
       }
-    }
+    });
 
     if (passingText === 0 && failingText === 0) {
       return {
@@ -77,12 +79,19 @@ class FontSize extends Audit {
         {key: 'fontSize', itemType: 'text', text: 'Font Size'}
       ];
 
-      const details = Audit.makeTableDetails(headings, failingElements);
+      const details = Audit.makeTableDetails(headings, Array.from(failingRules).map(rule => {
+        const value = rule[1];
+
+        return {
+          element: value.selectors.map(item => item.text).join(', '),
+          fontSize: `${value.fontSize}px`
+        };
+      }));
 
       return {
         rawValue: false,
         extendedInfo: {
-          value: failingElements
+          value: failingRules
         },
         details,
         debugString: `${(100 - percentageOfPassingText).toFixed(2)}% of text is too small.`,
