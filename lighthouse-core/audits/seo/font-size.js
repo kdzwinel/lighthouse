@@ -10,6 +10,40 @@ const ViewportAudit = require('../viewport');
 const MINIMAL_LEGIBLE_FONT_SIZE_PX = 16;
 const MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT = 75;
 
+function getTotalTextLength(rules) {
+  return rules.reduce((sum, item) => sum + item.textLength, 0);
+}
+
+function getFailingRules(fontSizeArtifact) {
+  const failingRules = new Map();
+
+  fontSizeArtifact.forEach(item => {
+    if (item.fontSize >= MINIMAL_LEGIBLE_FONT_SIZE_PX) {
+      return;
+    }
+
+    const cssRule = item.cssRule;
+    const ruleKey =
+      `${cssRule.styleSheetId}@${cssRule.range.startLine}:${cssRule.range.startColumn}`;
+    let failingRule = failingRules.get(ruleKey);
+
+    if (!failingRule) {
+      failingRule = {
+        styleSheetId: cssRule.styleSheetId,
+        range: cssRule.range,
+        selectors: cssRule.parentRule.selectors,
+        fontSize: item.fontSize,
+        textLength: 0
+      };
+      failingRules.set(ruleKey, failingRule);
+    }
+
+    failingRule.textLength += item.textLength;
+  });
+
+  return failingRules.valuesArray();
+}
+
 class FontSize extends Audit {
   /**
    * @return {!AuditMeta}
@@ -19,11 +53,10 @@ class FontSize extends Audit {
       category: 'Mobile friendly',
       name: 'font-size',
       description: 'Document uses legible font sizes.',
-      failureDescription: 'Document doesn\'t use legible font sizes: ' +
-        '`target <body> font-size >= 16px`, found',
+      failureDescription: 'Document doesn\'t use legible font sizes.',
       helpText: 'Font sizes less than 16px are too small to be legible and require mobile ' +
-        'visitors to “pinch to zoom” in order to read. ' +
-        '[Learn more](https://developers.google.com/speed/docs/insights/UseLegibleFontSizes).',
+      'visitors to “pinch to zoom” in order to read. ' +
+      '[Learn more](https://developers.google.com/speed/docs/insights/UseLegibleFontSizes).',
       requiredArtifacts: ['FontSize']
     };
   }
@@ -41,66 +74,59 @@ class FontSize extends Audit {
       };
     }
 
-    let passingText = 0;
-    let failingText = 0;
-    const failingRules = new Map();
+    const totalTextLenght = getTotalTextLength(artifacts.FontSize);
 
-    artifacts.FontSize.forEach(item => {
-      if (item.fontSize >= MINIMAL_LEGIBLE_FONT_SIZE_PX) {
-        passingText += item.textLength;
-      } else {
-        failingText += item.textLength;
-
-        const ruleKey = `${item.cssRule.styleSheetId}@${item.cssRule.range.startLine}:${item.cssRule.range.startColumn}`;
-
-        if(!failingRules.has(ruleKey)) {
-          failingRules.set(ruleKey, {
-            styleSheetId: item.cssRule.styleSheetId,
-            range: item.cssRule.range,
-            selectors: item.cssRule.parentRule.selectors,
-            fontSize: item.fontSize
-          });
-        }
-      }
-    });
-
-    if (passingText === 0 && failingText === 0) {
+    if (totalTextLenght === 0) {
       return {
         rawValue: true,
         debugString: 'Page contains no text',
       };
     }
 
-    const percentageOfPassingText = passingText / (passingText + failingText) * 100;
+    const failingRules = getFailingRules(artifacts.FontSize);
+    const failingTextLength = getTotalTextLength(failingRules);
+    const percentageOfPassingText = (totalTextLenght - failingTextLength) / totalTextLenght * 100;
 
-    if (percentageOfPassingText < MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT) {
-      const headings = [
-        {key: 'element', itemType: 'text', text: 'Element'},
-        {key: 'fontSize', itemType: 'text', text: 'Font Size'}
-      ];
+    const headings = [
+      {
+        key: 'selector',
+        itemType: 'text',
+        text: 'CSS selector',
+      },
+      {
+        key: 'percentage',
+        itemType: 'text',
+        text: '% of text',
+      },
+      {
+        key: 'fontSize',
+        itemType: 'text',
+        text: 'Font Size',
+      }
+    ];
 
-      const details = Audit.makeTableDetails(headings, Array.from(failingRules).map(rule => {
-        const value = rule[1];
+    const tableData = failingRules.sort((a, b) => b.textLength - a.textLength)
+      .map(rule => {
+        const percentageOfAffectedText = rule.textLength / totalTextLenght * 100;
 
         return {
-          element: value.selectors.map(item => item.text).join(', '),
-          fontSize: `${value.fontSize}px`
+          selector: rule.selectors.map(item => item.text).join(', '),
+          percentage: `${percentageOfAffectedText.toFixed(2)}%`,
+          fontSize: `${rule.fontSize}px`,
         };
-      }));
-
-      return {
-        rawValue: false,
-        extendedInfo: {
-          value: failingRules
-        },
-        details,
-        debugString: `${(100 - percentageOfPassingText).toFixed(2)}% of text is too small.`,
-      };
-    }
+      });
+    const details = Audit.makeTableDetails(headings, tableData);
+    const passed = percentageOfPassingText >= MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT;
 
     return {
-      rawValue: true,
-      debugString: `${percentageOfPassingText.toFixed(2)}% of text is legible`
+      rawValue: passed,
+      extendedInfo: {
+        value: failingRules
+      },
+      details,
+      debugString: passed ?
+        `${percentageOfPassingText.toFixed(2)}% of text is legible` :
+        `${(100 - percentageOfPassingText).toFixed(2)}% of text is too small.`
     };
   }
 }
