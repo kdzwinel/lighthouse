@@ -25,7 +25,7 @@ module.exports = (function() {
   }
 
   global.Node = {
-    ELEMENT_NODE: 1
+    ELEMENT_NODE: 1,
   };
 
   global.CSSAgent = {};
@@ -33,7 +33,7 @@ module.exports = (function() {
     INJECTED: 'injected',
     USER_AGENT: 'user-agent',
     INSPECTOR: 'inspector',
-    REGULAR: 'regular'
+    REGULAR: 'regular',
   };
 
   global.CSS = {};
@@ -328,8 +328,14 @@ module.exports = (function() {
   require('chrome-devtools-frontend/front_end/sdk/CSSStyleDeclaration.js');
 
   WebInspector.CSSMetadata._generatedProperties = [
-    {"name":"font-size","inherited":true},
-    {"name":"color","inherited":true}
+    {
+      name: 'font-size',
+      inherited: true,
+    },
+    {
+      name: 'color',
+      inherited: true,
+    },
   ];
 
   return WebInspector;

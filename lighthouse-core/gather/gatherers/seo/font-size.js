@@ -10,17 +10,21 @@ const Gatherer = require('../gatherer');
 const TEXT_NODE = 3;
 const FONT_SIZE_PROPERTY_NAME = 'font-size';
 
+/**
+ * @param {!Node} node top document node
+ * @returns {Node} body node
+ */
 function findBody(node) {
   const queue = [node];
 
-  while(queue.length > 0) {
+  while (queue.length > 0) {
     const currentNode = queue.shift();
 
-    if(currentNode.nodeName === 'BODY') {
+    if (currentNode.nodeName === 'BODY') {
       return currentNode;
     }
 
-    if(currentNode.children) {
+    if (currentNode.children) {
       currentNode.children.forEach(child => queue.push(child));
     }
   }
@@ -28,13 +32,17 @@ function findBody(node) {
   return null;
 }
 
+/**
+ * @param {!Node} node
+ * @returns {!Array<!Node>}
+ */
 function flattenTree(node) {
   const flat = [node];
 
   for (let i = 0; i < flat.length; i++) {
     const currentNode = flat[i];
 
-    if(currentNode.children) {
+    if (currentNode.children) {
       currentNode.children.forEach(child => {
         child.parentNode = currentNode;
         flat.push(child);
@@ -45,6 +53,12 @@ function flattenTree(node) {
   return flat;
 }
 
+/**
+ * Get list of all nodes from the document body.
+ *
+ * @param {!Object} driver
+ * @returns {!Array<!Node>}
+ */
 function getAllNodesFromBody(driver) {
   return driver.sendCommand('DOM.getDocument', {depth: -1, pierce: true})
     .then(result => {
@@ -53,27 +67,43 @@ function getAllNodesFromBody(driver) {
     });
 }
 
-function getFontSizeRule(node, {inlineStyle, matchedCSSRules, inherited}) {
+/**
+ * Returns effective CSS rule for the font-size property
+ *
+ * @param {!string} CSS property name
+ * @param {!Node} node
+ * @param {!Object} matched CSS rules
+ * @returns
+ */
+function getEffectiveRule(property, node, {inlineStyle, matchedCSSRules, inherited}) {
   const cssModel = {
-    styleSheetHeaderForId: id => {
-      return {id: id};
-    }
+    styleSheetHeaderForId: id => ({id}),
   };
 
   const nodeType = node.nodeType;
   node.nodeType = () => nodeType;
-  const matchedStyles = new CSSMatchedStyles(cssModel, node, inlineStyle, null, matchedCSSRules, null, inherited, null);
+  const matchedStyles =
+    new CSSMatchedStyles(cssModel, node, inlineStyle, null, matchedCSSRules, null, inherited, null);
 
   const nodeStyles = matchedStyles.nodeStyles();
   const matchingRule = nodeStyles.find(style => {
-    const property = style.allProperties.find(property => property.name === FONT_SIZE_PROPERTY_NAME);
+    const property =
+      style.allProperties.find(property => property.name === FONT_SIZE_PROPERTY_NAME);
     return property &&
       matchedStyles.propertyState(property) !== CSSMatchedStyles.PropertyState.Overloaded;
   });
 
+  debugger;
   return matchingRule;
 }
 
+/**
+ *
+ *
+ * @param {!Object} driver
+ * @param {!Node} node
+ * @returns {!{fontSize: number, textLength: number, cssRule: !Object}}
+ */
 function getFontSizeInformation(driver, node) {
   const computedStyles = driver.sendCommand('CSS.getComputedStyleForNode', {nodeId: node.nodeId});
   const matchedRules = driver.sendCommand('CSS.getMatchedStylesForNode', {nodeId: node.parentId});
@@ -86,9 +116,17 @@ function getFontSizeInformation(driver, node) {
       return {
         fontSize: parseInt(fontSizeProperty.value, 10),
         textLength: node.nodeValue.trim().length,
-        cssRule: getFontSizeRule(node, matchedRules)
+        cssRule: getEffectiveRule(FONT_SIZE_PROPERTY_NAME, node, matchedRules)
       };
     });
+}
+
+/**
+ * @param {Node} node
+ * @returns {boolean}
+ */
+function isNonEmptyTextNode(node) {
+  return node.nodeType === TEXT_NODE && node.nodeValue.trim().length > 0;
 }
 
 class FontSize extends Gatherer {
@@ -102,15 +140,18 @@ class FontSize extends Gatherer {
     const enableCSS = options.driver.sendCommand('CSS.enable');
 
     return Promise.all([enableDOM, enableCSS])
-    .then(() => getAllNodesFromBody(options.driver))
-    .then(nodes => nodes.filter(node => node.nodeType === TEXT_NODE && node.nodeValue.trim().length > 0))
-    .then(textNodes => Promise.all(textNodes.map(node => getFontSizeInformation(options.driver, node))))
-    .then(fontSizeInfo => {
-      options.driver.sendCommand('DOM.disable');
-      options.driver.sendCommand('CSS.disable');
+      .then(() => getAllNodesFromBody(options.driver))
+      .then(nodes => nodes.filter(isNonEmptyTextNode))
+      .then(textNodes => Promise.all(
+        textNodes.map(node => getFontSizeInformation(options.driver, node))
+      ))
+      .then(fontSizeInfo => {
+        options.driver.sendCommand('DOM.disable');
+        options.driver.sendCommand('CSS.disable');
 
-      return fontSizeInfo;
-    });
+        debugger;
+        return fontSizeInfo;
+      });
   }
 }
 
