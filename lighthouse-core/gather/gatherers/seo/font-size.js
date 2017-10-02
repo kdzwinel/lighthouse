@@ -11,8 +11,8 @@ const TEXT_NODE = 3;
 const FONT_SIZE_PROPERTY_NAME = 'font-size';
 
 /**
- * @param {!Node} node top document node
- * @returns {Node} body node
+ * @param {!Node} node Top document node
+ * @returns {Node}
  */
 function findBody(node) {
   const queue = [node];
@@ -68,12 +68,12 @@ function getAllNodesFromBody(driver) {
 }
 
 /**
- * Returns effective CSS rule for the font-size property
+ * Returns effective CSS rule for given CSS property
  *
- * @param {!string} CSS property name
+ * @param {!string} property CSS property name
  * @param {!Node} node
- * @param {!Object} matched CSS rules
- * @returns
+ * @param {!Object} matched CSS rule
+ * @returns {WebInspector.CSSStyleDeclaration}
  */
 function getEffectiveRule(property, node, {inlineStyle, matchedCSSRules, inherited}) {
   const cssModel = {
@@ -87,25 +87,21 @@ function getEffectiveRule(property, node, {inlineStyle, matchedCSSRules, inherit
 
   const nodeStyles = matchedStyles.nodeStyles();
   const matchingRule = nodeStyles.find(style => {
-    const property =
-      style.allProperties.find(property => property.name === FONT_SIZE_PROPERTY_NAME);
-    return property &&
-      matchedStyles.propertyState(property) !== CSSMatchedStyles.PropertyState.Overloaded;
+    const foundProperty = style.allProperties.find(item => item.name === property);
+    return foundProperty &&
+      matchedStyles.propertyState(foundProperty) !== CSSMatchedStyles.PropertyState.Overloaded;
   });
 
-  debugger;
   return matchingRule;
 }
 
 /**
- *
- *
  * @param {!Object} driver
  * @param {!Node} node
- * @returns {!{fontSize: number, textLength: number, cssRule: !Object}}
+ * @returns {!{fontSize: number, textLength: number, cssRule: WebInspector.CSSStyleDeclaration}}
  */
 function getFontSizeInformation(driver, node) {
-  const computedStyles = driver.sendCommand('CSS.getComputedStyleForNode', {nodeId: node.nodeId});
+  const computedStyles = driver.sendCommand('CSS.getComputedStyleForNode', {nodeId: node.parentId});
   const matchedRules = driver.sendCommand('CSS.getMatchedStylesForNode', {nodeId: node.parentId});
 
   return Promise.all([computedStyles, matchedRules])
@@ -116,7 +112,8 @@ function getFontSizeInformation(driver, node) {
       return {
         fontSize: parseInt(fontSizeProperty.value, 10),
         textLength: node.nodeValue.trim().length,
-        cssRule: getEffectiveRule(FONT_SIZE_PROPERTY_NAME, node, matchedRules)
+        node: node.parentNode,
+        cssRule: getEffectiveRule(FONT_SIZE_PROPERTY_NAME, node.parentNode, matchedRules)
       };
     });
 }
@@ -133,7 +130,7 @@ class FontSize extends Gatherer {
 
   /**
    * @param {{driver: !Object}} options Run options
-   * @return {!Promise<Object<int,int>>} The font-size value of the document body
+   * @return {!Promise<Array<Object>>} The font-size value of the document body
    */
   afterPass(options) {
     const enableDOM = options.driver.sendCommand('DOM.enable');
@@ -149,7 +146,6 @@ class FontSize extends Gatherer {
         options.driver.sendCommand('DOM.disable');
         options.driver.sendCommand('CSS.disable');
 
-        debugger;
         return fontSizeInfo;
       });
   }

@@ -7,41 +7,80 @@
 
 const Audit = require('../audit');
 const ViewportAudit = require('../viewport');
+const CSSStyleDeclaration = require('../../lib/web-inspector').CSSStyleDeclaration;
 const MINIMAL_LEGIBLE_FONT_SIZE_PX = 16;
 const MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT = 75;
 
+/**
+ * @param {!Array<{textLength:number}>} rules
+ * @returns number
+ */
 function getTotalTextLength(rules) {
   return rules.reduce((sum, item) => sum + item.textLength, 0);
 }
 
+/**
+ * @param {Array<{cssRule: WebInspector.CSSStyleDeclaration, fontSize: number, textLength: number, node: Node}>} fontSizeArtifact
+ * @returns {Array<{cssRule: WebInspector.CSSStyleDeclaration, fontSize: number, textLength: number, node: Node}>}
+ */
 function getFailingRules(fontSizeArtifact) {
   const failingRules = new Map();
 
-  fontSizeArtifact.forEach(item => {
-    if (item.fontSize >= MINIMAL_LEGIBLE_FONT_SIZE_PX) {
+  fontSizeArtifact.forEach(({cssRule, fontSize, textLength, node}) => {
+    if (fontSize >= MINIMAL_LEGIBLE_FONT_SIZE_PX) {
       return;
     }
 
-    const cssRule = item.cssRule;
-    const ruleKey =
-      `${cssRule.styleSheetId}@${cssRule.range.startLine}:${cssRule.range.startColumn}`;
-    let failingRule = failingRules.get(ruleKey);
+    const artifactId = getFontArtifactId(cssRule, node);
+    const failingRule = failingRules.get(artifactId);
 
     if (!failingRule) {
-      failingRule = {
-        styleSheetId: cssRule.styleSheetId,
-        range: cssRule.range,
-        selectors: cssRule.parentRule.selectors,
-        fontSize: item.fontSize,
-        textLength: 0
-      };
-      failingRules.set(ruleKey, failingRule);
+      failingRules.set(artifactId, {
+        node,
+        cssRule,
+        fontSize,
+        textLength
+      });
+    } else {
+      failingRule.textLength += textLength;
     }
-
-    failingRule.textLength += item.textLength;
   });
 
   return failingRules.valuesArray();
+}
+
+/**
+ * @param {WebInspector.CSSStyleDeclaration} rule
+ * @param {Node} node
+ * @returns string
+ */
+function ruleToSource(rule, node) {
+  if (rule.type === CSSStyleDeclaration.Type.Regular) {
+    return rule.selectors.map(item => item.text).join(', ');
+  }
+
+  const attributes = node.attributes.map((item, idx) => {
+    if (idx % 2 === 0) {
+      return ` ${item}`;
+    } else {
+      return item ? `="${item}"` : '';
+    }
+  }).join('');
+
+  return `<${node.localName}${attributes}>`;
+}
+
+/**
+ * @param {WebInspector.CSSStyleDeclaration} rule
+ * @param {Node} node
+ * @return string
+ */
+function getFontArtifactId(rule, node) {
+  if (rule.type === CSSStyleDeclaration.Type.Regular) {
+    return `${rule.styleSheetId}@${rule.range.startLine}:${rule.range.startColumn}`;
+  } else {
+    return `node_${node.id}`;
+  }
 }
 
 class FontSize extends Audit {
@@ -89,9 +128,9 @@ class FontSize extends Audit {
 
     const headings = [
       {
-        key: 'selector',
-        itemType: 'text',
-        text: 'CSS selector',
+        key: 'source',
+        itemType: 'code',
+        text: 'Source',
       },
       {
         key: 'percentage',
@@ -106,13 +145,13 @@ class FontSize extends Audit {
     ];
 
     const tableData = failingRules.sort((a, b) => b.textLength - a.textLength)
-      .map(rule => {
-        const percentageOfAffectedText = rule.textLength / totalTextLenght * 100;
+      .map(({cssRule, node, textLength, fontSize}) => {
+        const percentageOfAffectedText = textLength / totalTextLenght * 100;
 
         return {
-          selector: rule.selectors.map(item => item.text).join(', '),
+          source: ruleToSource(cssRule, node),
           percentage: `${percentageOfAffectedText.toFixed(2)}%`,
-          fontSize: `${rule.fontSize}px`,
+          fontSize: `${fontSize}px`,
         };
       });
     const details = Audit.makeTableDetails(headings, tableData);
@@ -120,9 +159,6 @@ class FontSize extends Audit {
 
     return {
       rawValue: passed,
-      extendedInfo: {
-        value: failingRules
-      },
       details,
       debugString: passed ?
         `${percentageOfPassingText.toFixed(2)}% of text is legible` :
