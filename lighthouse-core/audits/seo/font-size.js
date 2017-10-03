@@ -49,25 +49,34 @@ function getFailingRules(fontSizeArtifact) {
   return failingRules.valuesArray();
 }
 
+function nodeToString(node) {
+  return node.localName;
+}
+
 /**
  * @param {WebInspector.CSSStyleDeclaration} rule
  * @param {Node} node
  * @returns string
  */
-function ruleToSource(rule, node) {
-  if (rule.type === CSSStyleDeclaration.Type.Regular) {
-    return rule.selectors.map(item => item.text).join(', ');
+function getOriginDescription(rule, node) {
+  if (!rule) {
+    return 'User Agent Stylesheet';
   }
 
-  const attributes = node.attributes.map((item, idx) => {
-    if (idx % 2 === 0) {
-      return ` ${item}`;
-    } else {
-      return item ? `="${item}"` : '';
-    }
-  }).join('');
+  if (rule.type === CSSStyleDeclaration.Type.Attributes) {
+    return `Attributes Style: ${nodeToString(node)}`;
+  }
 
-  return `<${node.localName}${attributes}>`;
+  if (rule.type === CSSStyleDeclaration.Type.Inline) {
+    return `Inline Style: ${nodeToString(node)}`;
+  }
+
+  if (rule.type === CSSStyleDeclaration.Type.Regular && rule.parentRule) {
+    const selector = rule.parentRule.selectors.map(item => item.text).join(', ');
+    return `CSS Selector: ${selector}`;
+  }
+
+  return 'unknown';
 }
 
 /**
@@ -76,10 +85,12 @@ function ruleToSource(rule, node) {
  * @return string
  */
 function getFontArtifactId(rule, node) {
-  if (rule.type === CSSStyleDeclaration.Type.Regular) {
+  if (!rule) {
+    return 'user-agent';
+  } else if (rule.type === CSSStyleDeclaration.Type.Regular) {
     return `${rule.styleSheetId}@${rule.range.startLine}:${rule.range.startColumn}`;
   } else {
-    return `node_${node.id}`;
+    return `node_${node.nodeId}`;
   }
 }
 
@@ -127,21 +138,9 @@ class FontSize extends Audit {
     const percentageOfPassingText = (totalTextLenght - failingTextLength) / totalTextLenght * 100;
 
     const headings = [
-      {
-        key: 'source',
-        itemType: 'code',
-        text: 'Source',
-      },
-      {
-        key: 'percentage',
-        itemType: 'text',
-        text: '% of text',
-      },
-      {
-        key: 'fontSize',
-        itemType: 'text',
-        text: 'Font Size',
-      }
+      {key: 'origin', itemType: 'code', text: 'Origin'},
+      {key: 'percentage', itemType: 'text', text: '% of text'},
+      {key: 'fontSize', itemType: 'text', text: 'Font Size'}
     ];
 
     const tableData = failingRules.sort((a, b) => b.textLength - a.textLength)
@@ -149,7 +148,7 @@ class FontSize extends Audit {
         const percentageOfAffectedText = textLength / totalTextLenght * 100;
 
         return {
-          source: ruleToSource(cssRule, node),
+          origin: getOriginDescription(cssRule, node),
           percentage: `${percentageOfAffectedText.toFixed(2)}%`,
           fontSize: `${fontSize}px`,
         };
