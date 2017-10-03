@@ -75,15 +75,28 @@ function getAllNodesFromBody(driver) {
  * @param {!Object} matched CSS rule
  * @returns {WebInspector.CSSStyleDeclaration}
  */
-function getEffectiveRule(property, node, {inlineStyle, matchedCSSRules, inherited}) {
+function getEffectiveRule(property, node, {
+  inlineStyle,
+  attributesStyle,
+  matchedCSSRules,
+  inherited
+}) {
   const cssModel = {
     styleSheetHeaderForId: id => ({id}),
   };
 
   const nodeType = node.nodeType;
   node.nodeType = () => nodeType;
-  const matchedStyles =
-    new CSSMatchedStyles(cssModel, node, inlineStyle, null, matchedCSSRules, null, inherited, null);
+  const matchedStyles = new CSSMatchedStyles(
+    cssModel,
+    node,
+    inlineStyle,
+    attributesStyle,
+    matchedCSSRules,
+    null,
+    inherited,
+    null
+  );
 
   const nodeStyles = matchedStyles.nodeStyles();
   const matchingRule = nodeStyles.find(style => {
