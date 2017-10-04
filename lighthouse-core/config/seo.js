@@ -13,6 +13,8 @@ module.exports = {
       'viewport',
       'seo/meta-description',
       'seo/font-size',
+      'url',
+      'styles',
     ],
   }],
   audits: [

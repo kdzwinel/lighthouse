@@ -5,6 +5,7 @@
  */
 'use strict';
 
+const {URL} = require('url');
 const Audit = require('../audit');
 const ViewportAudit = require('../viewport');
 const CSSStyleDeclaration = require('../../lib/web-inspector').CSSStyleDeclaration;
@@ -50,33 +51,75 @@ function getFailingRules(fontSizeArtifact) {
 }
 
 function nodeToString(node) {
-  return node.localName;
+  const attributesString = node.attributes.map((value, idx) => {
+    if(idx % 2 === 0) {
+      return ` ${value}`;
+    }
+
+    return value ? `='${value}'` : '';
+  }).join('');
+
+  return `<${node.localName}${attributesString}>`;
 }
 
 /**
- * @param {WebInspector.CSSStyleDeclaration} rule
+ * @param {Array<{header:{styleSheetId:string, sourceURL:string}}>} stylesheets
  * @param {Node} node
+ * @param {string} baseURL
+ * @param {WebInspector.CSSStyleDeclaration} styleDeclaration
  * @returns string
  */
-function getOriginDescription(rule, node) {
-  if (!rule) {
-    return 'User Agent Stylesheet';
+function getOrigin(stylesheets, node, baseURL, styleDeclaration) {
+  if (!styleDeclaration) {
+    return {
+      details: 'User Agent Stylesheet'
+    };
   }
 
-  if (rule.type === CSSStyleDeclaration.Type.Attributes) {
-    return `Attributes Style: ${nodeToString(node)}`;
+  const range = styleDeclaration && styleDeclaration.range;
+  let file = baseURL;
+  let location = '';
+
+  if(range) {
+    location = `${range.startLine}:${range.startColumn}`;
   }
 
-  if (rule.type === CSSStyleDeclaration.Type.Inline) {
-    return `Inline Style: ${nodeToString(node)}`;
+  if (styleDeclaration.type === CSSStyleDeclaration.Type.Attributes) {
+    return {
+      details: `Attributes Style: ${nodeToString(node)}`,
+      file,
+      location
+    };
   }
 
-  if (rule.type === CSSStyleDeclaration.Type.Regular && rule.parentRule) {
-    const selector = rule.parentRule.selectors.map(item => item.text).join(', ');
-    return `CSS Selector: ${selector}`;
+  if (styleDeclaration.type === CSSStyleDeclaration.Type.Inline) {
+    return {
+      details: `Inline Style: ${nodeToString(node)}`,
+      file,
+      location
+    };
   }
 
-  return 'unknown';
+  if (styleDeclaration.type === CSSStyleDeclaration.Type.Regular && styleDeclaration.parentRule) {
+    const rule = styleDeclaration.parentRule;
+    const selector = rule.selectors.map(item => item.text).join(', ');
+    const stylesheetMeta = stylesheets.find(ss => ss.header.styleSheetId === rule.styleSheetId);
+
+    if (stylesheetMeta) {
+      const url = new URL(stylesheetMeta.header.sourceURL, baseURL);
+      file = `${url.href}`;
+    }
+
+    return {
+      details: `CSS Selector: ${selector}`,
+      file,
+      location
+    };
+  }
+
+  return {
+    details: 'Unknown'
+  };
 }
 
 /**
@@ -107,7 +150,7 @@ class FontSize extends Audit {
       helpText: 'Font sizes less than 16px are too small to be legible and require mobile ' +
       'visitors to “pinch to zoom” in order to read. ' +
       '[Learn more](https://developers.google.com/speed/docs/insights/UseLegibleFontSizes).',
-      requiredArtifacts: ['FontSize']
+      requiredArtifacts: ['FontSize', 'Styles', 'URL']
     };
   }
 
@@ -136,19 +179,25 @@ class FontSize extends Audit {
     const failingRules = getFailingRules(artifacts.FontSize);
     const failingTextLength = getTotalTextLength(failingRules);
     const percentageOfPassingText = (totalTextLenght - failingTextLength) / totalTextLenght * 100;
+    const pageUrl = artifacts.URL.finalUrl;
 
     const headings = [
-      {key: 'origin', itemType: 'code', text: 'Origin'},
-      {key: 'percentage', itemType: 'text', text: '% of text'},
+      {key: 'file', itemType: 'url', text: 'File'},
+      {key: 'location', itemType: 'url', text: 'Line and Column'},
+      {key: 'details', itemType: 'code', text: 'Details'},
+      {key: 'percentage', itemType: 'text', text: '% of Text'},
       {key: 'fontSize', itemType: 'text', text: 'Font Size'}
     ];
 
     const tableData = failingRules.sort((a, b) => b.textLength - a.textLength)
       .map(({cssRule, node, textLength, fontSize}) => {
         const percentageOfAffectedText = textLength / totalTextLenght * 100;
+        const origin = getOrigin(artifacts.Styles, node, pageUrl, cssRule);
 
         return {
-          origin: getOriginDescription(cssRule, node),
+          file: origin.file,
+          location: origin.location,
+          details: origin.details,
           percentage: `${percentageOfAffectedText.toFixed(2)}%`,
           fontSize: `${fontSize}px`,
         };
@@ -160,7 +209,7 @@ class FontSize extends Audit {
       rawValue: passed,
       details,
       debugString: passed ?
-        `${percentageOfPassingText.toFixed(2)}% of text is legible` :
+        `${percentageOfPassingText.toFixed(2)}% of text is legible.` :
         `${(100 - percentageOfPassingText).toFixed(2)}% of text is too small.`
     };
   }
