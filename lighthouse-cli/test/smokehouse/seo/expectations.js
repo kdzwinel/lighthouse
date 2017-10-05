@@ -25,6 +25,9 @@ module.exports = [
       'http-status-code': {
         score: true,
       },
+      'anchor-text': {
+        score: true,
+      },
     },
   },
   {
@@ -48,6 +51,10 @@ module.exports = [
       'http-status-code': {
         score: false,
         displayValue: '403',
+      },
+      'anchor-text': {
+        score: false,
+        displayValue: '2 anchors found',
       },
     },
   },
