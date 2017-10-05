@@ -30,7 +30,7 @@ class AnchorText extends Audit {
       description: 'Anchors have descriptive text.',
       failureDescription: 'Anchors do not have descriptive text',
       helpText: 'Descriptive anchor text helps search engines understand your content. ' +
-        '[Learn more](https://webmasters.googleblog.com/2008/10/importance-of-link-architecture.html)',
+      '[Learn more](https://webmasters.googleblog.com/2008/10/importance-of-link-architecture.html)',
       requiredArtifacts: ['URL', 'CrawlableAnchors'],
     };
   }
@@ -46,9 +46,10 @@ class AnchorText extends Audit {
         const url = new URL(anchor.href);
 
         if (
-          url.origin == pageHost.origin &&
-          url.pathname == pageHost.pathname &&
-          url.search == pageHost.search
+          url.protocol.toLowerCase() === 'javascript:' ||
+          (url.origin == pageHost.origin &&
+            url.pathname == pageHost.pathname &&
+            url.search == pageHost.search)
         ) {
           return false;
         }
