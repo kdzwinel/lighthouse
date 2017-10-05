@@ -73,7 +73,7 @@ class AnchorText extends Audit {
         value: failingAnchors,
       },
       details,
-      displayValue: failingAnchors.length ? `${failingAnchors.length} anchors found` : null,
+      displayValue: failingAnchors.length ? `${failingAnchors.length} anchors found` : undefined,
     };
   }
 }
