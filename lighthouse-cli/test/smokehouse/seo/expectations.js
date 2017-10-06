@@ -54,7 +54,7 @@ module.exports = [
       },
       'anchor-text': {
         score: false,
-        displayValue: '2 anchors found',
+        displayValue: '3 anchors found',
       },
     },
   },

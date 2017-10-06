@@ -27,7 +27,7 @@ describe('SEO: anchor text audit', () => {
     const auditResult = AnchorTextAudit.audit(artifacts);
     assert.equal(auditResult.rawValue, false);
     assert.equal(auditResult.extendedInfo.value.length, 1);
-    assert.equal(auditResult.extendedInfo.value.includes(invalidAnchor), false);
+    assert.equal(auditResult.extendedInfo.value.includes(invalidAnchor), true);
   });
 
   it('ignores links pointing to the main document', () => {
