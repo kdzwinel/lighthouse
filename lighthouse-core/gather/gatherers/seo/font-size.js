@@ -79,7 +79,7 @@ function getEffectiveRule(property, node, {
   inlineStyle,
   attributesStyle,
   matchedCSSRules,
-  inherited
+  inherited,
 }) {
   const cssModel = {
     styleSheetHeaderForId: id => ({id}),
