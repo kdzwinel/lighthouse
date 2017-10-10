@@ -40,7 +40,7 @@ function getFailingRules(fontSizeArtifact) {
         node,
         cssRule,
         fontSize,
-        textLength
+        textLength,
       });
     } else {
       failingRule.textLength += textLength;
@@ -50,53 +50,30 @@ function getFailingRules(fontSizeArtifact) {
   return failingRules.valuesArray();
 }
 
-function nodeToString(node) {
-  const attributesString = node.attributes.map((value, idx) => {
-    if(idx % 2 === 0) {
-      return ` ${value}`;
-    }
-
-    return value ? `='${value}'` : '';
-  }).join('');
-
-  return `<${node.localName}${attributesString}>`;
-}
-
 /**
  * @param {Array<{header:{styleSheetId:string, sourceURL:string}}>} stylesheets
- * @param {Node} node
  * @param {string} baseURL
  * @param {WebInspector.CSSStyleDeclaration} styleDeclaration
- * @returns string
+ * @returns {{source:!string, selector:string}}
  */
-function getOrigin(stylesheets, node, baseURL, styleDeclaration) {
+function getOrigin(stylesheets, baseURL, styleDeclaration) {
   if (!styleDeclaration) {
     return {
-      details: 'User Agent Stylesheet'
+      source: 'User Agent Stylesheet',
     };
   }
 
   const range = styleDeclaration && styleDeclaration.range;
-  let file = baseURL;
-  let location = '';
+  let source = baseURL;
 
   if(range) {
-    location = `${range.startLine}:${range.startColumn}`;
+    source += `:${range.startLine}:${range.startColumn}`;
   }
 
-  if (styleDeclaration.type === CSSStyleDeclaration.Type.Attributes) {
+  if (styleDeclaration.type === CSSStyleDeclaration.Type.Attributes ||
+    styleDeclaration.type === CSSStyleDeclaration.Type.Inline) {
     return {
-      details: `Attributes Style: ${nodeToString(node)}`,
-      file,
-      location
-    };
-  }
-
-  if (styleDeclaration.type === CSSStyleDeclaration.Type.Inline) {
-    return {
-      details: `Inline Style: ${nodeToString(node)}`,
-      file,
-      location
+      source,
     };
   }
 
@@ -107,18 +84,17 @@ function getOrigin(stylesheets, node, baseURL, styleDeclaration) {
 
     if (stylesheetMeta) {
       const url = new URL(stylesheetMeta.header.sourceURL, baseURL);
-      file = `${url.href}`;
+      source = `${url.href}`;
     }
 
     return {
-      details: `CSS Selector: ${selector}`,
-      file,
-      location
+      selector,
+      source,
     };
   }
 
   return {
-    details: 'Unknown'
+    source: 'Unknown',
   };
 }
 
@@ -150,7 +126,7 @@ class FontSize extends Audit {
       helpText: 'Font sizes less than 16px are too small to be legible and require mobile ' +
       'visitors to “pinch to zoom” in order to read. ' +
       '[Learn more](https://developers.google.com/speed/docs/insights/UseLegibleFontSizes).',
-      requiredArtifacts: ['FontSize', 'Styles', 'URL']
+      requiredArtifacts: ['FontSize', 'Styles', 'URL'],
     };
   }
 
@@ -182,23 +158,21 @@ class FontSize extends Audit {
     const pageUrl = artifacts.URL.finalUrl;
 
     const headings = [
-      {key: 'file', itemType: 'url', text: 'File'},
-      {key: 'location', itemType: 'url', text: 'Line and Column'},
-      {key: 'details', itemType: 'code', text: 'Details'},
-      {key: 'percentage', itemType: 'text', text: '% of Text'},
-      {key: 'fontSize', itemType: 'text', text: 'Font Size'}
+      {key: 'source', itemType: 'code', text: 'Source'},
+      {key: 'selector', itemType: 'code', text: 'Selector'},
+      {key: 'coverage', itemType: 'text', text: 'Coverage'},
+      {key: 'fontSize', itemType: 'text', text: 'Font Size'},
     ];
 
     const tableData = failingRules.sort((a, b) => b.textLength - a.textLength)
-      .map(({cssRule, node, textLength, fontSize}) => {
+      .map(({cssRule, textLength, fontSize}) => {
         const percentageOfAffectedText = textLength / totalTextLenght * 100;
-        const origin = getOrigin(artifacts.Styles, node, pageUrl, cssRule);
+        const origin = getOrigin(artifacts.Styles, pageUrl, cssRule);
 
         return {
-          file: origin.file,
-          location: origin.location,
-          details: origin.details,
-          percentage: `${percentageOfAffectedText.toFixed(2)}%`,
+          source: origin.source,
+          selector: origin.selector,
+          coverage: `${percentageOfAffectedText.toFixed(2)}%`,
           fontSize: `${fontSize}px`,
         };
       });
@@ -210,7 +184,7 @@ class FontSize extends Audit {
       details,
       debugString: passed ?
         `${percentageOfPassingText.toFixed(2)}% of text is legible.` :
-        `${(100 - percentageOfPassingText).toFixed(2)}% of text is too small.`
+        `${(100 - percentageOfPassingText).toFixed(2)}% of text is too small.`,
     };
   }
 }
