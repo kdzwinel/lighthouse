@@ -333,10 +333,6 @@ module.exports = (function() {
       name: 'font-size',
       inherited: true,
     },
-    {
-      name: 'color',
-      inherited: true,
-    },
   ];
 
   return WebInspector;
