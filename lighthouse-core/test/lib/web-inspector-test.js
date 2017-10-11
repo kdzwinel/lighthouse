@@ -19,6 +19,7 @@ describe('Web Inspector lib', function() {
     assert.ok(WebInspector.TimelineAggregator);
     assert.ok(WebInspector.NetworkManager);
     assert.ok(WebInspector.Color);
+    assert.ok(WebInspector.CSSMetadata);
   });
 
   // Our implementation of using DevTools doesn't sandbox natives
