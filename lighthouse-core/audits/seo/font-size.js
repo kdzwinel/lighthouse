@@ -51,46 +51,66 @@ function getFailingRules(fontSizeArtifact) {
 }
 
 /**
+ * @param {Node} node
+ * @return {{type:string, snippet:string}}
+ */
+function nodeToTableNode(node) {
+  const attributesString = node.attributes.map((value, idx) =>
+    (idx % 2 === 0) ? ` ${value}` : `="${value}"`
+  ).join('');
+
+  return {
+    type: 'node',
+    snippet: `<${node.localName}${attributesString}>`,
+  };
+}
+
+/**
  * @param {Array<{header:{styleSheetId:string, sourceURL:string}}>} stylesheets
  * @param {string} baseURL
  * @param {WebInspector.CSSStyleDeclaration} styleDeclaration
+ * @param {Node} node
  * @returns {{source:!string, selector:string}}
  */
-function getOrigin(stylesheets, baseURL, styleDeclaration) {
-  if (!styleDeclaration) {
+function getOrigin(stylesheets, baseURL, styleDeclaration, node) {
+  if (styleDeclaration.parentRule &&
+    styleDeclaration.parentRule.origin === CSSAgent.StyleSheetOrigin.USER_AGENT) {
     return {
+      selector: styleDeclaration.parentRule.selectors.map(item => item.text).join(', '),
       source: 'User Agent Stylesheet',
     };
-  }
-
-  const range = styleDeclaration && styleDeclaration.range;
-  let source = baseURL;
-
-  if(range) {
-    source += `:${range.startLine}:${range.startColumn}`;
   }
 
   if (styleDeclaration.type === CSSStyleDeclaration.Type.Attributes ||
     styleDeclaration.type === CSSStyleDeclaration.Type.Inline) {
     return {
-      source,
+      source: baseURL,
+      selector: nodeToTableNode(node),
     };
   }
 
   if (styleDeclaration.type === CSSStyleDeclaration.Type.Regular && styleDeclaration.parentRule) {
     const rule = styleDeclaration.parentRule;
-    const selector = rule.selectors.map(item => item.text).join(', ');
     const stylesheetMeta = stylesheets.find(ss => ss.header.styleSheetId === rule.styleSheetId);
 
     if (stylesheetMeta) {
       const url = new URL(stylesheetMeta.header.sourceURL, baseURL);
-      source = `${url.href}`;
-    }
+      const range = styleDeclaration.range;
+      const selector = rule.selectors.map(item => item.text).join(', ');
+      let source = `${url.href}`;
 
-    return {
-      selector,
-      source,
-    };
+      if(range) {
+        const absoluteStartLine = range.startLine + stylesheetMeta.header.startLine + 1;
+        const absoluteStartColumn = range.startColumn + stylesheetMeta.header.startColumn + 1;
+
+        source += `:${absoluteStartLine}:${absoluteStartColumn}`;
+      }
+
+      return {
+        selector,
+        source,
+      };
+    }
   }
 
   return {
@@ -99,15 +119,15 @@ function getOrigin(stylesheets, baseURL, styleDeclaration) {
 }
 
 /**
- * @param {WebInspector.CSSStyleDeclaration} rule
+ * @param {WebInspector.CSSStyleDeclaration} styleDeclaration
  * @param {Node} node
  * @return string
  */
-function getFontArtifactId(rule, node) {
-  if (!rule) {
-    return 'user-agent';
-  } else if (rule.type === CSSStyleDeclaration.Type.Regular) {
-    return `${rule.styleSheetId}@${rule.range.startLine}:${rule.range.startColumn}`;
+function getFontArtifactId(styleDeclaration, node) {
+  if (styleDeclaration.type === CSSStyleDeclaration.Type.Regular) {
+    const startLine = styleDeclaration.range ? styleDeclaration.range.startLine : 0;
+    const startColumn = styleDeclaration.range ? styleDeclaration.range.startColumn : 0;
+    return `${styleDeclaration.styleSheetId}@${startLine}:${startColumn}`;
   } else {
     return `node_${node.nodeId}`;
   }
@@ -158,16 +178,16 @@ class FontSize extends Audit {
     const pageUrl = artifacts.URL.finalUrl;
 
     const headings = [
-      {key: 'source', itemType: 'code', text: 'Source'},
+      {key: 'source', itemType: 'url', text: 'Source'},
       {key: 'selector', itemType: 'code', text: 'Selector'},
       {key: 'coverage', itemType: 'text', text: 'Coverage'},
       {key: 'fontSize', itemType: 'text', text: 'Font Size'},
     ];
 
     const tableData = failingRules.sort((a, b) => b.textLength - a.textLength)
-      .map(({cssRule, textLength, fontSize}) => {
+      .map(({cssRule, textLength, fontSize, node}) => {
         const percentageOfAffectedText = textLength / totalTextLenght * 100;
-        const origin = getOrigin(artifacts.Styles, pageUrl, cssRule);
+        const origin = getOrigin(artifacts.Styles, pageUrl, cssRule, node);
 
         return {
           source: origin.source,

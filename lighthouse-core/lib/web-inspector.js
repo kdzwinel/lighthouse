@@ -26,6 +26,7 @@ module.exports = (function() {
 
   global.Node = {
     ELEMENT_NODE: 1,
+    TEXT_NODE: 3,
   };
 
   global.CSSAgent = {};
