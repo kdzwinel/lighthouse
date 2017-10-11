@@ -6,14 +6,16 @@
 'use strict';
 
 module.exports = {
-  // extends: 'lighthouse:default',
+  extends: 'lighthouse:default',
   passes: [{
     passName: 'defaultPass',
     gatherers: [
-      'viewport',
       'seo/meta-description',
+    ],
+  }, {
+    passName: 'extraPass',
+    gatherers: [
       'seo/font-size',
-      'url',
       'styles',
     ],
   }],
@@ -42,10 +44,10 @@ module.exports = {
       name: 'SEO',
       description: 'These ensure your app is able to be understood by search engine crawlers.',
       audits: [
-        // {id: 'viewport', weight: 1, group: 'seo-mobile'},
-        // {id: 'document-title', weight: 1, group: 'seo-content'},
-        // {id: 'meta-description', weight: 1, group: 'seo-content'},
-        // {id: 'http-status-code', weight: 1, group: 'seo-crawl'},
+        {id: 'viewport', weight: 1, group: 'seo-mobile'},
+        {id: 'document-title', weight: 1, group: 'seo-content'},
+        {id: 'meta-description', weight: 1, group: 'seo-content'},
+        {id: 'http-status-code', weight: 1, group: 'seo-crawl'},
         {id: 'font-size', weight: 1, group: 'seo-mobile'},
       ],
     },

@@ -25,6 +25,10 @@ module.exports = [
       'http-status-code': {
         score: true,
       },
+      'font-size': {
+        rawValue: true,
+        debugString: '75% of text is legible.',
+      },
     },
   },
   {
@@ -48,6 +52,10 @@ module.exports = [
       'http-status-code': {
         score: false,
         displayValue: '403',
+      },
+      'font-size': {
+        rawValue: false,
+        debugString: 'Text is illegible because of a missing viewport config',
       },
     },
   },

@@ -73,19 +73,22 @@ function nodeToTableNode(node) {
  * @returns {{source:!string, selector:string}}
  */
 function getOrigin(stylesheets, baseURL, styleDeclaration, node) {
-  if (styleDeclaration.parentRule &&
-    styleDeclaration.parentRule.origin === CSSAgent.StyleSheetOrigin.USER_AGENT) {
-    return {
-      selector: styleDeclaration.parentRule.selectors.map(item => item.text).join(', '),
-      source: 'User Agent Stylesheet',
-    };
-  }
-
-  if (styleDeclaration.type === CSSStyleDeclaration.Type.Attributes ||
-    styleDeclaration.type === CSSStyleDeclaration.Type.Inline) {
+  if (
+    !styleDeclaration ||
+    styleDeclaration.type === CSSStyleDeclaration.Type.Attributes ||
+    styleDeclaration.type === CSSStyleDeclaration.Type.Inline
+  ) {
     return {
       source: baseURL,
       selector: nodeToTableNode(node),
+    };
+  }
+
+  if (styleDeclaration.parentRule &&
+    styleDeclaration.parentRule.origin === global.CSSAgent.StyleSheetOrigin.USER_AGENT) {
+    return {
+      selector: styleDeclaration.parentRule.selectors.map(item => item.text).join(', '),
+      source: 'User Agent Stylesheet',
     };
   }
 
@@ -124,7 +127,7 @@ function getOrigin(stylesheets, baseURL, styleDeclaration, node) {
  * @return string
  */
 function getFontArtifactId(styleDeclaration, node) {
-  if (styleDeclaration.type === CSSStyleDeclaration.Type.Regular) {
+  if (styleDeclaration && styleDeclaration.type === CSSStyleDeclaration.Type.Regular) {
     const startLine = styleDeclaration.range ? styleDeclaration.range.startLine : 0;
     const startColumn = styleDeclaration.range ? styleDeclaration.range.startColumn : 0;
     return `${styleDeclaration.styleSheetId}@${startLine}:${startColumn}`;
@@ -198,13 +201,13 @@ class FontSize extends Audit {
       });
     const details = Audit.makeTableDetails(headings, tableData);
     const passed = percentageOfPassingText >= MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT;
+    const debugString = passed ?
+      null : `${parseFloat((100 - percentageOfPassingText).toFixed(2))}% of text is too small.`;
 
     return {
       rawValue: passed,
       details,
-      debugString: passed ?
-        `${percentageOfPassingText.toFixed(2)}% of text is legible.` :
-        `${(100 - percentageOfPassingText).toFixed(2)}% of text is too small.`,
+      debugString,
     };
   }
 }
