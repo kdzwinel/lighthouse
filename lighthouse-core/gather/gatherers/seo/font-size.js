@@ -7,7 +7,6 @@
 
 const CSSMatchedStyles = require('../../../lib/web-inspector').CSSMatchedStyles;
 const Gatherer = require('../gatherer');
-const TEXT_NODE = 3;
 const FONT_SIZE_PROPERTY_NAME = 'font-size';
 
 /**
@@ -110,8 +109,8 @@ function getEffectiveRule(property, node, {
 
 /**
  * @param {!Object} driver
- * @param {!Node} node
- * @returns {!{fontSize: number, textLength: number, cssRule: WebInspector.CSSStyleDeclaration}}
+ * @param {!Node} node text node
+ * @returns {!{fontSize: number, textLength: number, node: Node, cssRule: WebInspector.CSSStyleDeclaration}}
  */
 function getFontSizeInformation(driver, node) {
   const computedStyles = driver.sendCommand('CSS.getComputedStyleForNode', {nodeId: node.parentId});
@@ -126,7 +125,7 @@ function getFontSizeInformation(driver, node) {
         fontSize: parseInt(fontSizeProperty.value, 10),
         textLength: node.nodeValue.trim().length,
         node: node.parentNode,
-        cssRule: getEffectiveRule(FONT_SIZE_PROPERTY_NAME, node.parentNode, matchedRules)
+        cssRule: getEffectiveRule(FONT_SIZE_PROPERTY_NAME, node.parentNode, matchedRules),
       };
     });
 }
@@ -136,7 +135,7 @@ function getFontSizeInformation(driver, node) {
  * @returns {boolean}
  */
 function isNonEmptyTextNode(node) {
-  return node.nodeType === TEXT_NODE && node.nodeValue.trim().length > 0;
+  return node.nodeType === Node.TEXT_NODE && node.nodeValue.trim().length > 0;
 }
 
 class FontSize extends Gatherer {
