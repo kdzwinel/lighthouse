@@ -149,7 +149,7 @@ class FontSize extends Audit {
       helpText: 'Font sizes less than 16px are too small to be legible and require mobile ' +
       'visitors to “pinch to zoom” in order to read. ' +
       '[Learn more](https://developers.google.com/speed/docs/insights/UseLegibleFontSizes).',
-      requiredArtifacts: ['FontSize', 'Styles', 'URL'],
+      requiredArtifacts: ['FontSize', 'Styles', 'URL', 'Viewport'],
     };
   }
 
@@ -171,7 +171,6 @@ class FontSize extends Audit {
     if (totalTextLenght === 0) {
       return {
         rawValue: true,
-        debugString: 'Page contains no text',
       };
     }
 
