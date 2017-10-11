@@ -13,10 +13,10 @@ let fontSizeGather;
 const body = {
   nodeName: 'BODY',
   children: [
-    {nodeValue: ' text ', nodeType: Node.TEXT_NODE, parentId: 1},
-    {nodeValue: ' text ', nodeType: Node.ELEMENT_NODE},
-    {nodeValue: '      ', nodeType: Node.TEXT_NODE},
-    {nodeValue: 'texttext', nodeType: Node.TEXT_NODE, parentId: 2},
+    {nodeValue: ' text ', nodeType: global.Node.TEXT_NODE, parentId: 1},
+    {nodeValue: ' text ', nodeType: global.Node.ELEMENT_NODE},
+    {nodeValue: '      ', nodeType: global.Node.TEXT_NODE},
+    {nodeValue: 'texttext', nodeType: global.Node.TEXT_NODE, parentId: 2},
   ],
 };
 const dom = {

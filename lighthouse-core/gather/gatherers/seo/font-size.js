@@ -71,7 +71,7 @@ function getAllNodesFromBody(driver) {
  *
  * @param {!string} property CSS property name
  * @param {!Node} node
- * @param {!Object} matched CSS rule
+ * @param {!Object} matched CSS rules
  * @returns {WebInspector.CSSStyleDeclaration}
  */
 function getEffectiveRule(property, node, {
@@ -135,14 +135,14 @@ function getFontSizeInformation(driver, node) {
  * @returns {boolean}
  */
 function isNonEmptyTextNode(node) {
-  return node.nodeType === Node.TEXT_NODE && node.nodeValue.trim().length > 0;
+  return node.nodeType === global.Node.TEXT_NODE && node.nodeValue.trim().length > 0;
 }
 
 class FontSize extends Gatherer {
 
   /**
    * @param {{driver: !Object}} options Run options
-   * @return {!Promise<Array<Object>>} The font-size value of the document body
+   * @return {!Promise<Array<{fontSize: number, textLength: number, node: Node, cssRule: WebInspector.CSSStyleDeclaration}>>} font-size analysis
    */
   afterPass(options) {
     const enableDOM = options.driver.sendCommand('DOM.enable');
@@ -155,10 +155,10 @@ class FontSize extends Gatherer {
         textNodes.map(node => getFontSizeInformation(options.driver, node))
       ))
       .then(fontSizeInfo => {
-        options.driver.sendCommand('DOM.disable');
-        options.driver.sendCommand('CSS.disable');
-
-        return fontSizeInfo;
+        return Promise.all([
+          options.driver.sendCommand('DOM.disable'),
+          options.driver.sendCommand('CSS.disable'),
+        ]).then(_ => fontSizeInfo);
       });
   }
 }
