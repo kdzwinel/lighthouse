@@ -27,7 +27,6 @@ module.exports = [
       },
       'font-size': {
         rawValue: true,
-        debugString: '75% of text is legible.',
       },
     },
   },
