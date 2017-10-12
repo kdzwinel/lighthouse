@@ -5,7 +5,7 @@
  */
 'use strict';
 
-const {URL} = require('url');
+const parseURL = require('url').parse;
 const Audit = require('../audit');
 const ViewportAudit = require('../viewport');
 const CSSStyleDeclaration = require('../../lib/web-inspector').CSSStyleDeclaration;
@@ -97,7 +97,7 @@ function getOrigin(stylesheets, baseURL, styleDeclaration, node) {
     const stylesheetMeta = stylesheets.find(ss => ss.header.styleSheetId === rule.styleSheetId);
 
     if (stylesheetMeta) {
-      const url = new URL(stylesheetMeta.header.sourceURL, baseURL);
+      const url = parseURL(stylesheetMeta.header.sourceURL, baseURL);
       const range = styleDeclaration.range;
       const selector = rule.selectors.map(item => item.text).join(', ');
       let source = `${url.href}`;
