@@ -102,7 +102,7 @@ function getOrigin(stylesheets, baseURL, styleDeclaration, node) {
       const selector = rule.selectors.map(item => item.text).join(', ');
       let source = `${url.href}`;
 
-      if(range) {
+      if (range) {
         const absoluteStartLine = range.startLine + stylesheetMeta.header.startLine + 1;
         const absoluteStartColumn = range.startColumn + stylesheetMeta.header.startColumn + 1;
 
