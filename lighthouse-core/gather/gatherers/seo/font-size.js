@@ -139,7 +139,6 @@ function isNonEmptyTextNode(node) {
 }
 
 class FontSize extends Gatherer {
-
   /**
    * @param {{driver: !Object}} options Run options
    * @return {!Promise<Array<{fontSize: number, textLength: number, node: Node, cssRule: WebInspector.CSSStyleDeclaration}>>} font-size analysis
