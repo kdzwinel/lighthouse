@@ -66,13 +66,12 @@ function nodeToTableNode(node) {
 }
 
 /**
- * @param {Array<{header:{styleSheetId:string, sourceURL:string}}>} stylesheets
  * @param {string} baseURL
  * @param {WebInspector.CSSStyleDeclaration} styleDeclaration
  * @param {Node} node
  * @returns {{source:!string, selector:string}}
  */
-function findStyleRuleSource(stylesheets, baseURL, styleDeclaration, node) {
+function findStyleRuleSource(baseURL, styleDeclaration, node) {
   if (
     !styleDeclaration ||
     styleDeclaration.type === CSSStyleDeclaration.Type.Attributes ||
@@ -94,17 +93,17 @@ function findStyleRuleSource(stylesheets, baseURL, styleDeclaration, node) {
 
   if (styleDeclaration.type === CSSStyleDeclaration.Type.Regular && styleDeclaration.parentRule) {
     const rule = styleDeclaration.parentRule;
-    const stylesheetMeta = stylesheets.find(ss => ss.header.styleSheetId === rule.styleSheetId);
+    const stylesheet = styleDeclaration.stylesheet;
 
-    if (stylesheetMeta) {
-      const url = parseURL(stylesheetMeta.header.sourceURL, baseURL);
+    if (stylesheet) {
+      const url = parseURL(stylesheet.sourceURL, baseURL);
       const range = styleDeclaration.range;
       const selector = rule.selectors.map(item => item.text).join(', ');
       let source = `${url.href}`;
 
       if (range) {
-        const absoluteStartLine = range.startLine + stylesheetMeta.header.startLine + 1;
-        const absoluteStartColumn = range.startColumn + stylesheetMeta.header.startColumn + 1;
+        const absoluteStartLine = range.startLine + stylesheet.startLine + 1;
+        const absoluteStartColumn = range.startColumn + stylesheet.startColumn + 1;
 
         source += `:${absoluteStartLine}:${absoluteStartColumn}`;
       }
@@ -149,7 +148,7 @@ class FontSize extends Audit {
       helpText: 'Font sizes less than 16px are too small to be legible and require mobile ' +
       'visitors to “pinch to zoom” in order to read. ' +
       '[Learn more](https://developers.google.com/speed/docs/insights/UseLegibleFontSizes).',
-      requiredArtifacts: ['FontSize', 'Styles', 'URL', 'Viewport'],
+      requiredArtifacts: ['FontSize', 'URL', 'Viewport'],
     };
   }
 
@@ -189,7 +188,7 @@ class FontSize extends Audit {
     const tableData = failingRules.sort((a, b) => b.textLength - a.textLength)
       .map(({cssRule, textLength, fontSize, node}) => {
         const percentageOfAffectedText = textLength / totalTextLength * 100;
-        const origin = findStyleRuleSource(artifacts.Styles, pageUrl, cssRule, node);
+        const origin = findStyleRuleSource(pageUrl, cssRule, node);
 
         return {
           source: origin.source,
