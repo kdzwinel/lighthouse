@@ -72,7 +72,7 @@ function nodeToTableNode(node) {
  * @param {Node} node
  * @returns {{source:!string, selector:string}}
  */
-function getOrigin(stylesheets, baseURL, styleDeclaration, node) {
+function findStyleRuleSource(stylesheets, baseURL, styleDeclaration, node) {
   if (
     !styleDeclaration ||
     styleDeclaration.type === CSSStyleDeclaration.Type.Attributes ||
@@ -166,9 +166,9 @@ class FontSize extends Audit {
       };
     }
 
-    const totalTextLenght = getTotalTextLength(artifacts.FontSize);
+    const totalTextLength = getTotalTextLength(artifacts.FontSize);
 
-    if (totalTextLenght === 0) {
+    if (totalTextLength === 0) {
       return {
         rawValue: true,
       };
@@ -176,7 +176,7 @@ class FontSize extends Audit {
 
     const failingRules = getFailingRules(artifacts.FontSize);
     const failingTextLength = getTotalTextLength(failingRules);
-    const percentageOfPassingText = (totalTextLenght - failingTextLength) / totalTextLenght * 100;
+    const percentageOfPassingText = (totalTextLength - failingTextLength) / totalTextLength * 100;
     const pageUrl = artifacts.URL.finalUrl;
 
     const headings = [
@@ -188,8 +188,8 @@ class FontSize extends Audit {
 
     const tableData = failingRules.sort((a, b) => b.textLength - a.textLength)
       .map(({cssRule, textLength, fontSize, node}) => {
-        const percentageOfAffectedText = textLength / totalTextLenght * 100;
-        const origin = getOrigin(artifacts.Styles, pageUrl, cssRule, node);
+        const percentageOfAffectedText = textLength / totalTextLength * 100;
+        const origin = findStyleRuleSource(artifacts.Styles, pageUrl, cssRule, node);
 
         return {
           source: origin.source,
