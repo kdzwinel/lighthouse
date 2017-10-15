@@ -27,6 +27,11 @@ module.exports = [
       },
       'font-size': {
         rawValue: true,
+        details: {
+          items: {
+            length: 5,
+          },
+        },
       },
     },
   },
