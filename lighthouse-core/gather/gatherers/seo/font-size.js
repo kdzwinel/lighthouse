@@ -144,6 +144,10 @@ class FontSize extends Gatherer {
    * @return {!Promise<Array<{fontSize: number, textLength: number, node: Node, cssRule: WebInspector.CSSStyleDeclaration}>>} font-size analysis
    */
   afterPass(options) {
+    const stylesheets = new Map();
+    const onStylesheetAdd = sheet => stylesheets.set(sheet.header.styleSheetId, sheet.header);
+    options.driver.on('CSS.styleSheetAdded', onStylesheetAdd);
+
     const enableDOM = options.driver.sendCommand('DOM.enable');
     const enableCSS = options.driver.sendCommand('CSS.enable');
 
@@ -154,6 +158,12 @@ class FontSize extends Gatherer {
         textNodes.map(node => getFontSizeInformation(options.driver, node))
       ))
       .then(fontSizeInfo => {
+        options.driver.off('CSS.styleSheetAdded', onStylesheetAdd);
+
+        fontSizeInfo
+          .filter(info => info.cssRule && info.cssRule.styleSheetId)
+          .forEach(info => info.cssRule.stylesheet = stylesheets.get(info.cssRule.styleSheetId));
+
         return Promise.all([
           options.driver.sendCommand('DOM.disable'),
           options.driver.sendCommand('CSS.disable'),

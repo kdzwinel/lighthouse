@@ -35,6 +35,8 @@ describe('Font size gatherer', () => {
   it('returns information about font size\'s used on page', () => {
     return fontSizeGather.afterPass({
       driver: {
+        on() {},
+        off() {},
         sendCommand(command, params) {
           let result;
           if (command === 'DOM.getDocument') {

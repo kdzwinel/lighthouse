@@ -11,12 +11,7 @@ module.exports = {
     passName: 'defaultPass',
     gatherers: [
       'seo/meta-description',
-    ],
-  }, {
-    passName: 'extraPass',
-    gatherers: [
       'seo/font-size',
-      'styles',
     ],
   }],
   audits: [
