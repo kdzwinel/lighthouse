@@ -26,8 +26,9 @@ describe('SEO: anchor text audit', () => {
 
     const auditResult = AnchorTextAudit.audit(artifacts);
     assert.equal(auditResult.rawValue, false);
-    assert.equal(auditResult.extendedInfo.value.length, 1);
-    assert.equal(auditResult.extendedInfo.value.includes(invalidAnchor), true);
+    assert.equal(auditResult.details.items.length, 1);
+    assert.equal(auditResult.details.items[0][0].text, invalidAnchor.href);
+    assert.equal(auditResult.details.items[0][1].text, invalidAnchor.text);
   });
 
   it('ignores links pointing to the main document', () => {
@@ -40,6 +41,22 @@ describe('SEO: anchor text audit', () => {
         {href: 'https://example.com/page.html', text: 'click here'},
         {href: 'https://example.com/page.html#test', text: 'click here'},
         {href: 'https://example.com/otherpage.html', text: 'legit anchor text'},
+      ],
+    };
+
+    const auditResult = AnchorTextAudit.audit(artifacts);
+    assert.equal(auditResult.rawValue, true);
+  });
+
+  it('ignores javascript: links', () => {
+    const artifacts = {
+      URL: {
+        finalUrl: 'https://example.com/page.html',
+      },
+      CrawlableAnchors: [
+        {href: 'javascript:alert(1)', text: 'click here'},
+        {href: 'JavaScript:window.location="/otherpage.html"', text: 'click here'},
+        {href: 'JAVASCRIPT:void(0)', text: 'click here'},
       ],
     };
 

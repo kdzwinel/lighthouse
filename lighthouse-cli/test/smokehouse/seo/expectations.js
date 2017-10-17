@@ -55,6 +55,11 @@ module.exports = [
       'anchor-text': {
         score: false,
         displayValue: '3 anchors found',
+        details: {
+          items: {
+            length: 3,
+          },
+        },
       },
     },
   },
