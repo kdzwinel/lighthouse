@@ -53,8 +53,8 @@ class AnchorText extends Audit {
       });
 
     const headings = [
-      {key: 'href', itemType: 'url', text: 'URL'},
-      {key: 'text', itemType: 'text', text: 'Text'},
+      {key: 'href', itemType: 'url', text: 'Link destination'},
+      {key: 'text', itemType: 'text', text: 'Link Text'},
     ];
 
     const details = Audit.makeTableDetails(headings, failingAnchors);
