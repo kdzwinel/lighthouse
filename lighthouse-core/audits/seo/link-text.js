@@ -19,19 +19,19 @@ const BLOCKLIST = new Set([
   'learn more',
 ]);
 
-class AnchorText extends Audit {
+class LinkText extends Audit {
   /**
    * @return {!AuditMeta}
    */
   static get meta() {
     return {
       category: 'Content Best Practices',
-      name: 'anchor-text',
-      description: 'Anchors have descriptive text.',
-      failureDescription: 'Anchors do not have descriptive text',
-      helpText: 'Descriptive anchor text helps search engines understand your content. ' +
+      name: 'link-text',
+      description: 'Links have descriptive text.',
+      failureDescription: 'Links do not have descriptive text',
+      helpText: 'Descriptive link text helps search engines understand your content. ' +
       '[Learn more](https://webmasters.googleblog.com/2008/10/importance-of-link-architecture.html)',
-      requiredArtifacts: ['URL', 'CrawlableAnchors'],
+      requiredArtifacts: ['URL', 'CrawlableLinks'],
     };
   }
 
@@ -40,16 +40,16 @@ class AnchorText extends Audit {
    * @return {!AuditResult}
    */
   static audit(artifacts) {
-    const failingAnchors = artifacts.CrawlableAnchors
-      .filter(anchor => {
+    const failingLinks = artifacts.CrawlableLinks
+      .filter(link => {
         if (
-          anchor.href.toLowerCase().startsWith('javascript:') ||
-          URL.equalWithExcludedFragments(anchor.href, artifacts.URL.finalUrl)
+          link.href.toLowerCase().startsWith('javascript:') ||
+          URL.equalWithExcludedFragments(link.href, artifacts.URL.finalUrl)
         ) {
           return false;
         }
 
-        return BLOCKLIST.has(anchor.text.trim().toLowerCase());
+        return BLOCKLIST.has(link.text.trim().toLowerCase());
       });
 
     const headings = [
@@ -57,20 +57,20 @@ class AnchorText extends Audit {
       {key: 'text', itemType: 'text', text: 'Link Text'},
     ];
 
-    const details = Audit.makeTableDetails(headings, failingAnchors);
+    const details = Audit.makeTableDetails(headings, failingLinks);
     let displayValue;
 
-    if (failingAnchors.length) {
-      displayValue = failingAnchors.length > 1 ?
-        `${failingAnchors.length} anchors found` : '1 anchor found';
+    if (failingLinks.length) {
+      displayValue = failingLinks.length > 1 ?
+        `${failingLinks.length} links found` : '1 link found';
     }
 
     return {
-      rawValue: failingAnchors.length === 0,
+      rawValue: failingLinks.length === 0,
       details,
       displayValue,
     };
   }
 }
 
-module.exports = AnchorText;
+module.exports = LinkText;

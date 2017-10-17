@@ -8,7 +8,7 @@
 const Gatherer = require('../gatherer');
 const DOMHelpers = require('../../../lib/dom-helpers.js');
 
-class CrawlableAnchors extends Gatherer {
+class CrawlableLinks extends Gatherer {
   /**
    * @param {{driver: !Object}} options Run options
    * @return {!Promise<!Array<{href: string, text: string}>>}
@@ -29,5 +29,5 @@ class CrawlableAnchors extends Gatherer {
   }
 }
 
-module.exports = CrawlableAnchors;
+module.exports = CrawlableLinks;
 

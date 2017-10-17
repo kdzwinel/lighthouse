@@ -5,30 +5,30 @@
  */
 'use strict';
 
-const AnchorTextAudit = require('../../../audits/seo/anchor-text.js');
+const LinkTextAudit = require('../../../audits/seo/link-text.js');
 const assert = require('assert');
 
 /* eslint-env mocha */
 
-describe('SEO: anchor text audit', () => {
-  it('fails when anchor with non descriptive text is found', () => {
-    const invalidAnchor = {href: 'https://example.com/otherpage.html', text: 'click here'};
+describe('SEO: link text audit', () => {
+  it('fails when link with non descriptive text is found', () => {
+    const invalidLink = {href: 'https://example.com/otherpage.html', text: 'click here'};
     const artifacts = {
       URL: {
         finalUrl: 'https://example.com/page.html',
       },
-      CrawlableAnchors: [
-        {href: 'https://example.com/otherpage.html', text: 'legit anchor text'},
-        invalidAnchor,
-        {href: 'https://example.com/otherpage.html', text: 'legit anchor text'},
+      CrawlableLinks: [
+        {href: 'https://example.com/otherpage.html', text: 'legit link text'},
+        invalidLink,
+        {href: 'https://example.com/otherpage.html', text: 'legit link text'},
       ],
     };
 
-    const auditResult = AnchorTextAudit.audit(artifacts);
+    const auditResult = LinkTextAudit.audit(artifacts);
     assert.equal(auditResult.rawValue, false);
     assert.equal(auditResult.details.items.length, 1);
-    assert.equal(auditResult.details.items[0][0].text, invalidAnchor.href);
-    assert.equal(auditResult.details.items[0][1].text, invalidAnchor.text);
+    assert.equal(auditResult.details.items[0][0].text, invalidLink.href);
+    assert.equal(auditResult.details.items[0][1].text, invalidLink.text);
   });
 
   it('ignores links pointing to the main document', () => {
@@ -36,15 +36,15 @@ describe('SEO: anchor text audit', () => {
       URL: {
         finalUrl: 'https://example.com/page.html',
       },
-      CrawlableAnchors: [
-        {href: 'https://example.com/otherpage.html', text: 'legit anchor text'},
+      CrawlableLinks: [
+        {href: 'https://example.com/otherpage.html', text: 'legit link text'},
         {href: 'https://example.com/page.html', text: 'click here'},
         {href: 'https://example.com/page.html#test', text: 'click here'},
-        {href: 'https://example.com/otherpage.html', text: 'legit anchor text'},
+        {href: 'https://example.com/otherpage.html', text: 'legit link text'},
       ],
     };
 
-    const auditResult = AnchorTextAudit.audit(artifacts);
+    const auditResult = LinkTextAudit.audit(artifacts);
     assert.equal(auditResult.rawValue, true);
   });
 
@@ -53,30 +53,30 @@ describe('SEO: anchor text audit', () => {
       URL: {
         finalUrl: 'https://example.com/page.html',
       },
-      CrawlableAnchors: [
+      CrawlableLinks: [
         {href: 'javascript:alert(1)', text: 'click here'},
         {href: 'JavaScript:window.location="/otherpage.html"', text: 'click here'},
         {href: 'JAVASCRIPT:void(0)', text: 'click here'},
       ],
     };
 
-    const auditResult = AnchorTextAudit.audit(artifacts);
+    const auditResult = LinkTextAudit.audit(artifacts);
     assert.equal(auditResult.rawValue, true);
   });
 
-  it('passes when all anchors have descriptive texts', () => {
+  it('passes when all links have descriptive texts', () => {
     const artifacts = {
       URL: {
         finalUrl: 'https://example.com/page.html',
       },
-      CrawlableAnchors: [
-        {href: 'https://example.com/otherpage.html', text: 'legit anchor text'},
-        {href: 'http://example.com/page.html?test=test', text: 'legit anchor text'},
-        {href: 'file://Users/user/Desktop/file.png', text: 'legit anchor text'},
+      CrawlableLinks: [
+        {href: 'https://example.com/otherpage.html', text: 'legit link text'},
+        {href: 'http://example.com/page.html?test=test', text: 'legit link text'},
+        {href: 'file://Users/user/Desktop/file.png', text: 'legit link text'},
       ],
     };
 
-    const auditResult = AnchorTextAudit.audit(artifacts);
+    const auditResult = LinkTextAudit.audit(artifacts);
     assert.equal(auditResult.rawValue, true);
   });
 });
