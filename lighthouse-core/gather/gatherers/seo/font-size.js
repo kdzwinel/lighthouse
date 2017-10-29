@@ -100,6 +100,7 @@ function getEffectiveRule(property, node, {
   const nodeStyles = matchedStyles.nodeStyles();
   const matchingRule = nodeStyles.find(style => {
     const foundProperty = style.allProperties.find(item => item.name === property);
+    // the applicable property will be the only one that isn't in the "overloaded" state.
     return foundProperty &&
       matchedStyles.propertyState(foundProperty) !== CSSMatchedStyles.PropertyState.Overloaded;
   });

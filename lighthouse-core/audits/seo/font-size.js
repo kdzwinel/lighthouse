@@ -24,7 +24,7 @@ function getTotalTextLength(rules) {
  * @param {Array<{cssRule: WebInspector.CSSStyleDeclaration, fontSize: number, textLength: number, node: Node}>} fontSizeArtifact
  * @returns {Array<{cssRule: WebInspector.CSSStyleDeclaration, fontSize: number, textLength: number, node: Node}>}
  */
-function getFailingRules(fontSizeArtifact) {
+function getUniqueFailingRules(fontSizeArtifact) {
   const failingRules = new Map();
 
   fontSizeArtifact.forEach(({cssRule, fontSize, textLength, node}) => {
@@ -102,6 +102,8 @@ function findStyleRuleSource(baseURL, styleDeclaration, node) {
       let source = `${url.href}`;
 
       if (range) {
+        // `stylesheet` can be either an external file (stylesheet.startLine will allways be 0),
+        // or a <style> block (stylesheet.startLine will vary)
         const absoluteStartLine = range.startLine + stylesheet.startLine + 1;
         const absoluteStartColumn = range.startColumn + stylesheet.startColumn + 1;
 
@@ -141,7 +143,6 @@ class FontSize extends Audit {
    */
   static get meta() {
     return {
-      category: 'Mobile friendly',
       name: 'font-size',
       description: 'Document uses legible font sizes.',
       failureDescription: 'Document doesn\'t use legible font sizes.',
@@ -173,7 +174,7 @@ class FontSize extends Audit {
       };
     }
 
-    const failingRules = getFailingRules(artifacts.FontSize);
+    const failingRules = getUniqueFailingRules(artifacts.FontSize);
     const failingTextLength = getTotalTextLength(failingRules);
     const percentageOfPassingText = (totalTextLength - failingTextLength) / totalTextLength * 100;
     const pageUrl = artifacts.URL.finalUrl;

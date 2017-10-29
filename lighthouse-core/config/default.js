@@ -37,6 +37,7 @@ module.exports = {
       'dobetterweb/tags-blocking-first-paint',
       'dobetterweb/websql',
       'seo/meta-description',
+      'seo/font-size',
     ],
   },
   {
@@ -148,6 +149,7 @@ module.exports = {
     'dobetterweb/uses-passive-event-listeners',
     'seo/meta-description',
     'seo/http-status-code',
+    'seo/font-size',
   ],
 
   groups: {
