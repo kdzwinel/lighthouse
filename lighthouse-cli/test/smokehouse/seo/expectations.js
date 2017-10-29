@@ -33,6 +33,9 @@ module.exports = [
           },
         },
       },
+      'link-text': {
+        score: true,
+      },
     },
   },
   {
@@ -60,6 +63,15 @@ module.exports = [
       'font-size': {
         rawValue: false,
         debugString: 'Text is illegible because of a missing viewport config',
+      },
+      'link-text': {
+        score: false,
+        displayValue: '3 links found',
+        details: {
+          items: {
+            length: 3,
+          },
+        },
       },
     },
   },

@@ -184,7 +184,6 @@ describe('Runner', () => {
 
   describe('Bad audit behavior handling', () => {
     const testAuditMeta = {
-      category: 'ThrowThrow',
       name: 'throwy-audit',
       description: 'Always throws',
       failureDescription: 'Always throws is failing, natch',
@@ -260,7 +259,7 @@ describe('Runner', () => {
 
     return Runner.run({}, {url, config}).then(results => {
       const audits = results.audits;
-      assert.equal(audits['critical-request-chains'].displayValue, 9);
+      assert.equal(audits['critical-request-chains'].displayValue, 5);
       assert.equal(audits['critical-request-chains'].rawValue, false);
     });
   });

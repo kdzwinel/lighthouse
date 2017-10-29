@@ -40,6 +40,10 @@ module.exports = (function() {
   global.CSS = {};
   global.CSS.supports = () => true;
 
+  // Stash the real one so we can reinstall after DT incorrectly polyfills.
+  // See https://github.com/GoogleChrome/lighthouse/issues/73
+  const _setImmediate = global.setImmediate;
+
   global.Runtime = global.Runtime || {};
 
   // Required for devtools-timeline-model
@@ -334,6 +338,9 @@ module.exports = (function() {
       inherited: true,
     },
   ];
+
+  // Restore setImmediate, see comment at top.
+  global.setImmediate = _setImmediate;
 
   return WebInspector;
 })();

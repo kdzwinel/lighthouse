@@ -12,12 +12,14 @@ module.exports = {
     gatherers: [
       'seo/meta-description',
       'seo/font-size',
+      'seo/crawlable-links',
     ],
   }],
   audits: [
     'seo/meta-description',
     'seo/http-status-code',
     'seo/font-size',
+    'seo/link-text',
   ],
   groups: {
     'seo-mobile': {
@@ -44,6 +46,7 @@ module.exports = {
         {id: 'meta-description', weight: 1, group: 'seo-content'},
         {id: 'http-status-code', weight: 1, group: 'seo-crawl'},
         {id: 'font-size', weight: 1, group: 'seo-mobile'},
+        {id: 'link-text', weight: 1, group: 'seo-content'},
       ],
     },
   },

@@ -14,6 +14,7 @@
 const Audit = require('./audit');
 const URL = require('../lib/url-shim');
 const Emulation = require('../lib/emulation');
+const Sentry = require('../lib/sentry');
 const Util = require('../report/v2/renderer/util.js');
 
 // Maximum TTFI to be considered "fast" for PWA baseline checklist
@@ -28,7 +29,6 @@ class LoadFastEnough4Pwa extends Audit {
    */
   static get meta() {
     return {
-      category: 'PWA',
       name: 'load-fast-enough-for-pwa',
       description: 'Page load is fast enough on 3G',
       failureDescription: 'Page load is not fast enough on 3G',
@@ -111,10 +111,26 @@ class LoadFastEnough4Pwa extends Audit {
         }
 
         if (!areLatenciesAll3G) {
+          const sentryContext = Sentry.getContext();
+          const hadThrottlingEnabled = sentryContext && sentryContext.extra &&
+              sentryContext.extra.networkThrottling;
+
+          if (hadThrottlingEnabled) {
+            // Track these instances in Sentry since there should be no requests that are fast when
+            // throttling is enabled, and it's likely a throttling bug we should look into.
+            const violatingLatency = firstRequestLatencies
+                .find(item => Number(item.latency) < latency3gMin);
+            Sentry.captureMessage('Network request latencies were not realistic', {
+              tags: {audit: this.meta.name},
+              extra: {violatingLatency},
+              level: 'warning',
+            });
+          }
+
           return {
             rawValue: true,
             // eslint-disable-next-line max-len
-            debugString: `First Interactive was found at ${Util.formatMilliseconds(timeToFirstInteractive)}, however, the network request latencies were not sufficiently realistic, so the performance measurements cannot be trusted.`,
+            debugString: `First Interactive was found at ${Util.formatMilliseconds(timeToFirstInteractive)}; however, the network request latencies were not sufficiently realistic, so the performance measurements cannot be trusted.`,
             extendedInfo,
             details,
           };

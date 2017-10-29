@@ -64,6 +64,7 @@ Configuration:
   --hostname                     The hostname to use for the debugging protocol.                                                [default: localhost]
   --max-wait-for-load            The timeout (in milliseconds) to wait before the page is considered done loading and the run should continue.
                                  WARNING: Very high values can lead to large traces and instability                                 [default: 25000]
+  --enable-error-reporting       Enables error reporting (prompts once by default, setting this flag will force error reporting to that state).
 
 Output:
   --output       Reporter for the results, supports multiple values                           [choices: "json", "html", "domhtml"] [default: "html"]
@@ -130,6 +131,10 @@ NOTE: specifying an output path with multiple formats ignores your specified ext
 * `./<HOST>_<DATE>.report.html`
 * `./<HOST>_<DATE>.artifacts.log`
 
+#### Notes on Error Reporting
+
+The first time you run the CLI you will be prompted with a message asking you if Lighthouse can anonymously report runtime exceptions. The Lighthouse team uses this information to detect new bugs and avoid regressions. Opting out will not affect your ability to use Lighthouse in any way. [Learn more](https://github.com/GoogleChrome/lighthouse/blob/master/docs/error-reporting.md).
+
 ## Viewing a report
 
 Lighthouse can produce a report as JSON or HTML.
@@ -170,7 +175,7 @@ Useful documentation, examples, and recipes to get you started.
 **Videos**
 
 The session from Google I/O 2017 covers architecture, writing custom audits,
-Github/Travis/CI integration, headless Chrome, and more:
+GitHub/Travis/CI integration, headless Chrome, and more:
 
 [![Lighthouse @ Google I/O](https://img.youtube.com/vi/NoRYn6gOtVo/0.jpg)](https://www.youtube.com/watch?v=NoRYn6gOtVo)
 
@@ -237,7 +242,7 @@ This section details projects that have integrated Lighthouse. If you're working
 
 * **[HTTPArchive](http://httparchive.org/)** - HTTPArchive tracks how the web is built by crawling 500k pages with Web Page Test, including Lighthouse results, and stores the information in BigQuery where it is [publicly available](https://discuss.httparchive.org/t/quickstart-guide-to-exploring-the-http-archive/682).
 
-* **[Treo](https://treo.sh)** - Treo is Lighthouse as a Service. It provides regression testing, geographical regions, custom networks, and integrations with Github & Slack. Treo is a paid product with plans for solo-developers and teams.
+* **[Treo](https://treo.sh)** - Treo is Lighthouse as a Service. It provides regression testing, geographical regions, custom networks, and integrations with GitHub & Slack. Treo is a paid product with plans for solo-developers and teams.
 
 * **[Web Page Test](https://www.webpagetest.org)** — An [open source](https://github.com/WPO-Foundation/webpagetest) tool for measuring and analyzing the performance of web pages on real devices. Users can choose to produce a Lighthouse report alongside the analysis of WebPageTest results.
 
