@@ -9,6 +9,7 @@ const parseURL = require('url').parse;
 const Audit = require('../audit');
 const ViewportAudit = require('../viewport');
 const CSSStyleDeclaration = require('../../lib/web-inspector').CSSStyleDeclaration;
+// 16px value comes from https://developers.google.com/speed/docs/insights/UseLegibleFontSizes
 const MINIMAL_LEGIBLE_FONT_SIZE_PX = 16;
 const MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT = 75;
 
@@ -69,7 +70,7 @@ function nodeToTableNode(node) {
  * @param {string} baseURL
  * @param {WebInspector.CSSStyleDeclaration} styleDeclaration
  * @param {Node} node
- * @returns {{source:!string, selector:string}}
+ * @returns {{source:!string, selector:string|object}}
  */
 function findStyleRuleSource(baseURL, styleDeclaration, node) {
   if (
