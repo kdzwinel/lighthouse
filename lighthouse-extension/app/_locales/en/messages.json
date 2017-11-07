@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Lighthouse",
+    "message": "Lighthouse - SEO",
     "description": "Helping you avoid Progressive Web App woes."
   },
   "appDescription": {
-    "message": "Lighthouse",
+    "message": "Test version of Ligthouse with the upcoming SEO audits enabled.",
     "description": "Helping you avoid Progressive Web App woes."
   }
 }

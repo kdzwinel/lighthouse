@@ -269,4 +269,7 @@ if (window.chrome && chrome.runtime) {
       console.log('previousVersion', details.previousVersion);
     }
   });
+
+  chrome.browserAction.setBadgeBackgroundColor({color: [255, 0, 0, 255]});
+  chrome.browserAction.setBadgeText({text: 'SEO'});
 }

@@ -10,6 +10,8 @@ module.exports = {
     passName: 'defaultPass',
     recordTrace: false,
     useThrottling: false,
+    networkQuietThresholdMs: 0,
+    pauseAfterLoadMs: 0,
     gatherers: [
       'url',
       'viewport',
@@ -18,29 +20,6 @@ module.exports = {
       'seo/crawlable-links',
       'seo/meta-robots',
       'seo/hreflang',
-    ],
-  },
-  {
-    passName: 'offlinePass',
-    useThrottling: false,
-    // Just wait for onload
-    networkQuietThresholdMs: 0,
-    gatherers: [
-      'service-worker',
-      'offline',
-      'start-url',
-    ],
-  },
-  {
-    passName: 'redirectPass',
-    useThrottling: false,
-    // Just wait for onload
-    networkQuietThresholdMs: 0,
-    // Speed up the redirect pass by blocking stylesheets, fonts, and images
-    blockedUrlPatterns: ['*.css', '*.jpg', '*.jpeg', '*.png', '*.gif', '*.svg', '*.ttf', '*.woff', '*.woff2'],
-    gatherers: [
-      'http-redirect',
-      'html-without-javascript',
     ],
   }],
   audits: [
@@ -77,6 +56,7 @@ module.exports = {
         {id: 'meta-description', weight: 1, group: 'seo-content'},
         {id: 'http-status-code', weight: 1, group: 'seo-crawl'},
         {id: 'link-text', weight: 1, group: 'seo-content'},
+        {id: 'is-crawlable', weight: 1, group: 'seo-crawl'},
       ],
     },
   },
