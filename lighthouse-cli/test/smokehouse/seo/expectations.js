@@ -31,11 +31,14 @@ module.exports = [
       'is-crawlable': {
         score: true,
       },
+      'hreflang': {
+        score: true,
+      },
     },
   },
   {
-    initialUrl: 'http://localhost:10200/seo/seo-failure-cases.html?status_code=403&extra_header=x-robots-tag:none',
-    url: 'http://localhost:10200/seo/seo-failure-cases.html?status_code=403&extra_header=x-robots-tag:none',
+    initialUrl: 'http://localhost:10200/seo/seo-failure-cases.html?status_code=403&extra_header=x-robots-tag:none&extra_header=link:' + encodeURI('<http://example.com>;rel="alternate";hreflang="xx"'),
+    url: 'http://localhost:10200/seo/seo-failure-cases.html?status_code=403&extra_header=x-robots-tag:none&extra_header=link:' + encodeURI('<http://example.com>;rel="alternate";hreflang="xx"'),
     audits: {
       'viewport': {
         score: false,
@@ -69,6 +72,14 @@ module.exports = [
         details: {
           items: {
             length: 2,
+          },
+        },
+      },
+      'hreflang': {
+        score: false,
+        details: {
+          items: {
+            length: 3,
           },
         },
       },

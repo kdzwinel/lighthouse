@@ -20,7 +20,7 @@ function isValidHreflang(hreflang) {
     return true;
   }
 
-  // hreflang can consist of language-region-script, we are validating only language
+  // hreflang can consist of language-script-region, we are validating only language
   const [lang] = hreflang.split('-');
   return axeCore.utils.validLangs().includes(lang.toLowerCase());
 }
