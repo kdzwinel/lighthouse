@@ -10,7 +10,7 @@ const assert = require('assert');
 
 /* eslint-env mocha */
 
-describe('SEO: Page has valid hreflang attributes', () => {
+describe('SEO: Document has valid hreflang code', () => {
   it('fails when language code provided in hreflang via link element is invalid', () => {
     const hreflangValues = [
       'xx',
@@ -63,7 +63,7 @@ describe('SEO: Page has valid hreflang attributes', () => {
     });
   });
 
-  it('succeeds when there are no rel=alternate link elements', () => {
+  it('succeeds when there are no rel=alternate link elements nor headers', () => {
     const mainResource = {
       responseHeaders: [],
     };
@@ -127,21 +127,6 @@ describe('SEO: Page has valid hreflang attributes', () => {
         {name: 'Link', value: '<http://fr.example.com/>; rel="alternate"; hreflang="fr-be"'},
         {name: 'LINK', value: '<http://es.example.com/>; rel="alternate"; hreflang="es",<http://fr.example.com/>; rel="alternate"; Hreflang="fr-be"'},
       ],
-    };
-    const artifacts = {
-      devtoolsLogs: {[HreflangAudit.DEFAULT_PASS]: []},
-      requestMainResource: () => Promise.resolve(mainResource),
-      Hreflang: null,
-    };
-
-    return HreflangAudit.audit(artifacts).then(auditResult => {
-      assert.equal(auditResult.rawValue, true);
-    });
-  });
-
-  it('succeeds when there is no Link header', () => {
-    const mainResource = {
-      responseHeaders: [],
     };
     const artifacts = {
       devtoolsLogs: {[HreflangAudit.DEFAULT_PASS]: []},
