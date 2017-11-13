@@ -7,9 +7,22 @@
 
 const Audit = require('../audit');
 const LinkHeader = require('http-link-header');
-const axeCore = require('axe-core');
+const VALID_LANGS = importValidLangs();
 const LINK_HEADER = 'link';
 const NO_LANGUAGE = 'x-default';
+
+/**
+ * Import list of valid languages from axe core without including whole axe-core package
+ */
+function importValidLangs() {
+  const axeCache = global.axe;
+  global.axe = {utils: {}};
+  require('axe-core/lib/commons/utils/valid-langs.js');
+  const validLangs = global.axe.utils.validLangs();
+  global.axe = axeCache;
+
+  return validLangs;
+}
 
 /**
  * @param {String} hreflang 
@@ -22,7 +35,7 @@ function isValidHreflang(hreflang) {
 
   // hreflang can consist of language-script-region, we are validating only language
   const [lang] = hreflang.split('-');
-  return axeCore.utils.validLangs().includes(lang.toLowerCase());
+  return VALID_LANGS.includes(lang.toLowerCase());
 }
 
 /**

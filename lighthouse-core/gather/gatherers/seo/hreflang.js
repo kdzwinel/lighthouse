@@ -10,15 +10,14 @@ const Gatherer = require('../gatherer');
 class Hreflang extends Gatherer {
   /**
    * @param {{driver: !Object}} options Run options
-   * @return {!Promise<?Array<string>>} Array with hreflang and href values of all link[rel=alternate] nodes found in HEAD, or null
+   * @return {!Promise<!Array<{href: string, hreflang: string}>>} Array with hreflang and href values of all link[rel=alternate] nodes found in HEAD
    */
   afterPass(options) {
     const driver = options.driver;
 
     return driver.querySelectorAll('head link[rel="alternate" i][hreflang]')
-      .then(nodes => nodes &&
-        Promise.all(
-          nodes.map(node => Promise.all([node.getAttribute('href'), node.getAttribute('hreflang')]))
+      .then(nodes => Promise.all(nodes.map(node =>
+          Promise.all([node.getAttribute('href'), node.getAttribute('hreflang')]))
         )
       ).then(attributeValues => attributeValues &&
         attributeValues.map(values => {

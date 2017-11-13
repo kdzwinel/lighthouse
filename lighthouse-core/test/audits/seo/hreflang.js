@@ -70,7 +70,7 @@ describe('SEO: Document has valid hreflang code', () => {
     const artifacts = {
       devtoolsLogs: {[HreflangAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
-      Hreflang: null,
+      Hreflang: [],
     };
 
     return HreflangAudit.audit(artifacts).then(auditResult => {
