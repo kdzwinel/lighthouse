@@ -25,8 +25,8 @@ function importValidLangs() {
 }
 
 /**
- * @param {String} hreflang 
- * @returns {Boolean}
+ * @param {string} hreflang
+ * @returns {boolean}
  */
 function isValidHreflang(hreflang) {
   if (hreflang.toLowerCase() === NO_LANGUAGE) {
@@ -39,8 +39,8 @@ function isValidHreflang(hreflang) {
 }
 
 /**
- * @param {String} headerValue 
- * @returns {Boolean}
+ * @param {string} headerValue
+ * @returns {boolean}
  */
 function headerHasValidHreflangs(headerValue) {
   const linkHeader = LinkHeader.parse(headerValue);
@@ -74,7 +74,7 @@ class Hreflang extends Audit {
 
     return artifacts.requestMainResource(devtoolsLogs)
       .then(mainResource => {
-        /** @type {Array<{source: String|Object}>} */
+        /** @type {Array<{source: string|{type: string, snippet: string}}>} */
         const invalidHreflangs = [];
 
         if (artifacts.Hreflang) {
