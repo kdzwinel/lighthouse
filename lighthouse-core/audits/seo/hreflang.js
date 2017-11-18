@@ -13,6 +13,8 @@ const NO_LANGUAGE = 'x-default';
 
 /**
  * Import list of valid languages from axe core without including whole axe-core package
+ * This is a huge array of language codes that can be stored more efficiently if we will need to
+ * shrink the bundle size.
  */
 function importValidLangs() {
   const axeCache = global.axe;
