@@ -13,6 +13,7 @@ module.exports = {
       'seo/meta-description',
       'seo/font-size',
       'seo/crawlable-links',
+      'seo/meta-robots',
     ],
   }],
   audits: [
@@ -20,6 +21,7 @@ module.exports = {
     'seo/http-status-code',
     'seo/font-size',
     'seo/link-text',
+    'seo/is-crawlable',
   ],
   groups: {
     'seo-mobile': {
@@ -47,6 +49,7 @@ module.exports = {
         {id: 'http-status-code', weight: 1, group: 'seo-crawl'},
         {id: 'font-size', weight: 1, group: 'seo-mobile'},
         {id: 'link-text', weight: 1, group: 'seo-content'},
+        {id: 'is-crawlable', weight: 1, group: 'seo-crawl'},
       ],
     },
   },

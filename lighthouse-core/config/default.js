@@ -38,6 +38,8 @@ module.exports = {
       'dobetterweb/websql',
       'seo/meta-description',
       'seo/font-size',
+      'seo/crawlable-links',
+      'seo/meta-robots',
     ],
   },
   {
@@ -150,6 +152,8 @@ module.exports = {
     'seo/meta-description',
     'seo/http-status-code',
     'seo/font-size',
+    'seo/link-text',
+    'seo/is-crawlable',
   ],
 
   groups: {
