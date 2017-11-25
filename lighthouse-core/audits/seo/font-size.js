@@ -9,17 +9,7 @@ const parseURL = require('url').parse;
 const Audit = require('../audit');
 const ViewportAudit = require('../viewport');
 const CSSStyleDeclaration = require('../../lib/web-inspector').CSSStyleDeclaration;
-// 16px value comes from https://developers.google.com/speed/docs/insights/UseLegibleFontSizes
-const MINIMAL_LEGIBLE_FONT_SIZE_PX = 16;
 const MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT = 75;
-
-/**
- * @param {!Array<{textLength:number}>} rules
- * @returns number
- */
-function getTotalTextLength(rules) {
-  return rules.reduce((sum, item) => sum + item.textLength, 0);
-}
 
 /**
  * @param {Array<{cssRule: WebInspector.CSSStyleDeclaration, fontSize: number, textLength: number, node: Node}>} fontSizeArtifact
@@ -29,10 +19,6 @@ function getUniqueFailingRules(fontSizeArtifact) {
   const failingRules = new Map();
 
   fontSizeArtifact.forEach(({cssRule, fontSize, textLength, node}) => {
-    if (fontSize >= MINIMAL_LEGIBLE_FONT_SIZE_PX) {
-      return;
-    }
-
     const artifactId = getFontArtifactId(cssRule, node);
     const failingRule = failingRules.get(artifactId);
 
@@ -167,7 +153,12 @@ class FontSize extends Audit {
       };
     }
 
-    const totalTextLength = getTotalTextLength(artifacts.FontSize);
+    const {
+      failingNodesData,
+      totalTextLength,
+      failingTextLength,
+      visitedTextLength,
+    } = artifacts.FontSize;
 
     if (totalTextLength === 0) {
       return {
@@ -175,9 +166,9 @@ class FontSize extends Audit {
       };
     }
 
-    const failingRules = getUniqueFailingRules(artifacts.FontSize);
-    const failingTextLength = getTotalTextLength(failingRules);
-    const percentageOfPassingText = (totalTextLength - failingTextLength) / totalTextLength * 100;
+    const failingRules = getUniqueFailingRules(failingNodesData);
+    const percentageOfPassingText =
+      (visitedTextLength - failingTextLength) / visitedTextLength * 100;
     const pageUrl = artifacts.URL.finalUrl;
 
     const headings = [
@@ -189,7 +180,7 @@ class FontSize extends Audit {
 
     const tableData = failingRules.sort((a, b) => b.textLength - a.textLength)
       .map(({cssRule, textLength, fontSize, node}) => {
-        const percentageOfAffectedText = textLength / totalTextLength * 100;
+        const percentageOfAffectedText = textLength / visitedTextLength * 100;
         const origin = findStyleRuleSource(pageUrl, cssRule, node);
 
         return {
@@ -199,10 +190,38 @@ class FontSize extends Audit {
           fontSize: `${fontSize}px`,
         };
       });
+
+    // all failing nodes which were not fully analyzed will be shown in the 'Other' category
+    const analyzedFailingTextLength =
+      failingRules.reduce((sum, {textLength}) => sum += textLength, 0);
+    if (analyzedFailingTextLength < failingTextLength) {
+      const percentageOfUnanalyzedFailingText =
+        (failingTextLength - analyzedFailingTextLength) / visitedTextLength * 100;
+
+      tableData.push({
+        source: 'Other',
+        selector: null,
+        coverage: `${percentageOfUnanalyzedFailingText.toFixed(2)}%`,
+        fontSize: '< 16px',
+      });
+    }
+
     const details = Audit.makeTableDetails(headings, tableData);
     const passed = percentageOfPassingText >= MINIMAL_PERCENTAGE_OF_LEGIBLE_TEXT;
-    const debugString = passed ?
-      null : `${parseFloat((100 - percentageOfPassingText).toFixed(2))}% of text is too small.`;
+    let debugString = null;
+
+    if (!passed) {
+      const percentageOfFailingText = parseFloat((100 - percentageOfPassingText).toFixed(2));
+      let disclaimer = '';
+
+      // if we were unable to visit all text nodes we should disclose that information
+      if (visitedTextLength < totalTextLength) {
+        const percentageOfVisitedText = visitedTextLength / totalTextLength * 100;
+        disclaimer = ` (based on ${percentageOfVisitedText.toFixed()}% sample)`;
+      }
+
+      debugString = `${percentageOfFailingText}% of text is too small${disclaimer}.`;
+    }
 
     return {
       rawValue: passed,

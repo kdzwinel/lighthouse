@@ -8,6 +8,11 @@
 const CSSMatchedStyles = require('../../../lib/web-inspector').CSSMatchedStyles;
 const Gatherer = require('../gatherer');
 const FONT_SIZE_PROPERTY_NAME = 'font-size';
+// 16px value comes from https://developers.google.com/speed/docs/insights/UseLegibleFontSizes
+const MINIMAL_LEGIBLE_FONT_SIZE_PX = 16;
+// limit number of protocol calls to make sure that gatherer doesn't take more than 1-2s
+const MAX_NODES_VISITED = 500;
+const MAX_NODES_ANALYZED = 50;
 
 /**
  * @param {!Node} node Top document node
@@ -109,24 +114,38 @@ function getEffectiveRule(property, node, {
 }
 
 /**
+ * @param {!Node} node
+ * @returns {!number}
+ */
+function getNodeTextLength(node) {
+  return !node.nodeValue ? 0 : node.nodeValue.trim().length;
+}
+
+/**
  * @param {!Object} driver
  * @param {!Node} node text node
- * @returns {!{fontSize: number, textLength: number, node: Node, cssRule: WebInspector.CSSStyleDeclaration}}
+ * @returns {WebInspector.CSSStyleDeclaration}
+ */
+function getFontSizeSourceRule(driver, node) {
+  return driver.sendCommand('CSS.getMatchedStylesForNode', {nodeId: node.nodeId})
+    .then(matchedRules => getEffectiveRule(FONT_SIZE_PROPERTY_NAME, node, matchedRules));
+}
+
+/**
+ * @param {!Object} driver
+ * @param {!Node} node text node
+ * @returns {!{fontSize: number, textLength: number, node: Node}}
  */
 function getFontSizeInformation(driver, node) {
-  const computedStyles = driver.sendCommand('CSS.getComputedStyleForNode', {nodeId: node.parentId});
-  const matchedRules = driver.sendCommand('CSS.getMatchedStylesForNode', {nodeId: node.parentId});
-
-  return Promise.all([computedStyles, matchedRules])
+  return driver.sendCommand('CSS.getComputedStyleForNode', {nodeId: node.parentId})
     .then(result => {
-      const [{computedStyle}, matchedRules] = result;
+      const {computedStyle} = result;
       const fontSizeProperty = computedStyle.find(({name}) => name === FONT_SIZE_PROPERTY_NAME);
 
       return {
         fontSize: parseInt(fontSizeProperty.value, 10),
-        textLength: node.nodeValue.trim().length,
-        node: node.parentNode,
-        cssRule: getEffectiveRule(FONT_SIZE_PROPERTY_NAME, node.parentNode, matchedRules),
+        textLength: getNodeTextLength(node),
+        node: node.parentNode
       };
     });
 }
@@ -136,13 +155,13 @@ function getFontSizeInformation(driver, node) {
  * @returns {boolean}
  */
 function isNonEmptyTextNode(node) {
-  return node.nodeType === global.Node.TEXT_NODE && node.nodeValue.trim().length > 0;
+  return node.nodeType === global.Node.TEXT_NODE && getNodeTextLength(node) > 0;
 }
 
 class FontSize extends Gatherer {
   /**
    * @param {{driver: !Object}} options Run options
-   * @return {!Promise<Array<{fontSize: number, textLength: number, node: Node, cssRule: WebInspector.CSSStyleDeclaration}>>} font-size analysis
+   * @return {!Promise<{totalTextLength: number, failingTextLength: number, visitedTextLength: number, failingNodesData: Array<{fontSize: number, textLength: number, node: Node, cssRule: WebInspector.CSSStyleDeclaration}>}>} font-size analysis
    */
   afterPass(options) {
     const stylesheets = new Map();
@@ -152,23 +171,55 @@ class FontSize extends Gatherer {
     const enableDOM = options.driver.sendCommand('DOM.enable');
     const enableCSS = options.driver.sendCommand('CSS.enable');
 
+    let failingTextLength = 0;
+    let visitedTextLength = 0;
+    let totalTextLength = 0;
+
     return Promise.all([enableDOM, enableCSS])
       .then(() => getAllNodesFromBody(options.driver))
-      .then(nodes => nodes.filter(isNonEmptyTextNode))
-      .then(textNodes => Promise.all(
-        textNodes.map(node => getFontSizeInformation(options.driver, node))
-      ))
+      .then(nodes => {
+        const textNodes = nodes.filter(isNonEmptyTextNode);
+        totalTextLength = textNodes.reduce((sum, node) => sum += getNodeTextLength(node), 0);
+        const visitedNodes = textNodes.slice(0, MAX_NODES_VISITED);
+        visitedTextLength = visitedNodes.reduce((sum, node) => sum += getNodeTextLength(node), 0);
+
+        return visitedNodes;
+      })
+      .then(textNodes =>
+        Promise.all(textNodes.map(node => getFontSizeInformation(options.driver, node))))
       .then(fontSizeInfo => {
+        const failingNodes = fontSizeInfo
+          .filter(({fontSize}) => fontSize < MINIMAL_LEGIBLE_FONT_SIZE_PX);
+        failingTextLength = failingNodes.reduce((sum, {textLength}) => sum += textLength, 0);
+
+        return Promise.all(failingNodes
+          .sort((a, b) => b.textLength - a.textLength)
+          .slice(0, MAX_NODES_ANALYZED)
+          .map(info =>
+            getFontSizeSourceRule(options.driver, info.node)
+              .then(sourceRule => {
+                info.cssRule = sourceRule;
+                return info;
+              })
+          )
+        );
+      })
+      .then(failingNodesData => {
         options.driver.off('CSS.styleSheetAdded', onStylesheetAdd);
 
-        fontSizeInfo
-          .filter(info => info.cssRule && info.cssRule.styleSheetId)
-          .forEach(info => info.cssRule.stylesheet = stylesheets.get(info.cssRule.styleSheetId));
+        failingNodesData
+          .filter(data => data.cssRule && data.cssRule.styleSheetId)
+          .forEach(data => data.cssRule.stylesheet = stylesheets.get(data.cssRule.styleSheetId));
 
         return Promise.all([
           options.driver.sendCommand('DOM.disable'),
           options.driver.sendCommand('CSS.disable'),
-        ]).then(_ => fontSizeInfo);
+        ]).then(_ => ({
+          failingNodesData,
+          failingTextLength,
+          visitedTextLength,
+          totalTextLength,
+        }));
       });
   }
 }
