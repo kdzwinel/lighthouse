@@ -8,6 +8,7 @@
 const CSSMatchedStyles = require('../../../lib/web-inspector').CSSMatchedStyles;
 const Gatherer = require('../gatherer');
 const FONT_SIZE_PROPERTY_NAME = 'font-size';
+const TEXT_NODE_BLOCK_LIST = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT']);
 // 16px value comes from https://developers.google.com/speed/docs/insights/UseLegibleFontSizes
 const MINIMAL_LEGIBLE_FONT_SIZE_PX = 16;
 // limit number of protocol calls to make sure that gatherer doesn't take more than 1-2s
@@ -15,46 +16,17 @@ const MAX_NODES_VISITED = 500;
 const MAX_NODES_ANALYZED = 50;
 
 /**
- * @param {!Node} node Top document node
- * @returns {Node}
- */
-function findBody(node) {
-  const queue = [node];
-
-  while (queue.length > 0) {
-    const currentNode = queue.shift();
-
-    if (currentNode.nodeName === 'BODY') {
-      return currentNode;
-    }
-
-    if (currentNode.children) {
-      currentNode.children.forEach(child => queue.push(child));
-    }
-  }
-
-  return null;
-}
-
-/**
  * @param {!Node} node
- * @returns {!Array<!Node>}
+ * @returns {boolean}
  */
-function flattenTree(node) {
-  const flat = [node];
-
-  for (let i = 0; i < flat.length; i++) {
-    const currentNode = flat[i];
-
-    if (currentNode.children) {
-      currentNode.children.forEach(child => {
-        child.parentNode = currentNode;
-        flat.push(child);
-      });
-    }
+function nodeInBody(node) {
+  if (!node) {
+    return false;
   }
-
-  return flat;
+  if (node.nodeName === 'BODY') {
+    return true;
+  }
+  return nodeInBody(node.parentNode);
 }
 
 /**
@@ -64,10 +36,12 @@ function flattenTree(node) {
  * @returns {!Array<!Node>}
  */
 function getAllNodesFromBody(driver) {
-  return driver.sendCommand('DOM.getDocument', {depth: -1, pierce: true})
-    .then(result => {
-      const body = findBody(result.root);
-      return body ? flattenTree(body) : [];
+  return driver.getNodesInDocument()
+    .then(nodes => {
+      const nodeMap = new Map();
+      nodes.forEach(node => nodeMap.set(node.nodeId, node));
+      nodes.forEach(node => node.parentNode = nodeMap.get(node.parentId));
+      return nodes.filter(nodeInBody);
     });
 }
 
@@ -155,7 +129,9 @@ function getFontSizeInformation(driver, node) {
  * @returns {boolean}
  */
 function isNonEmptyTextNode(node) {
-  return node.nodeType === global.Node.TEXT_NODE && getNodeTextLength(node) > 0;
+  return node.nodeType === global.Node.TEXT_NODE &&
+    !TEXT_NODE_BLOCK_LIST.has(node.parentNode.nodeName) &&
+    getNodeTextLength(node) > 0;
 }
 
 class FontSize extends Gatherer {

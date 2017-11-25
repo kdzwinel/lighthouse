@@ -787,11 +787,16 @@ class Driver {
    * @return {!Promise<!Array<!Element>>} The found elements, or [], resolved in a promise
    */
   getElementsInDocument(pierce = true) {
+    return this.getNodesInDocument(pierce)
+      .then(nodes => nodes
+        .filter(node => node.nodeType === 1)
+        .map(node => new Element({nodeId: node.nodeId}, this))
+      );
+  }
+
+  getNodesInDocument(pierce = true) {
     return this.sendCommand('DOM.getFlattenedDocument', {depth: -1, pierce})
-      .then(result => {
-        const elements = result.nodes.filter(node => node.nodeType === 1);
-        return elements.map(node => new Element({nodeId: node.nodeId}, this));
-      });
+      .then(result => result.nodes ? result.nodes : []);
   }
 
   /**
