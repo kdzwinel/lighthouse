@@ -10,7 +10,6 @@ const assert = require('assert');
 const CSSStyleDeclaration = require('../../../lib/web-inspector').CSSStyleDeclaration;
 
 const URL = 'https://example.com';
-const Styles = [];
 const validViewport = 'width=device-width';
 
 /* eslint-env mocha */
@@ -20,7 +19,6 @@ describe('SEO: Font size audit', () => {
     const artifacts = {
       URL,
       Viewport: null,
-      Styles,
       FontSize: [],
     };
 
@@ -33,27 +31,34 @@ describe('SEO: Font size audit', () => {
     const artifacts = {
       URL,
       Viewport: validViewport,
-      Styles,
-      FontSize: [
-        {textLength: 1, fontSize: 15, node: {nodeId: 1, localName: 'p', attributes: []}},
-        {textLength: 2, fontSize: 16, node: {nodeId: 2, localName: 'p', attributes: []}},
-      ],
+      FontSize: {
+        totalTextLength: 100,
+        visitedTextLength: 100,
+        failingTextLength: 33,
+        failingNodesData: [
+          {textLength: 11, fontSize: 14, node: {nodeId: 1, localName: 'p', attributes: []}},
+          {textLength: 22, fontSize: 15, node: {nodeId: 2, localName: 'p', attributes: []}},
+        ],
+      },
     };
 
     const auditResult = FontSizeAudit.audit(artifacts);
     assert.equal(auditResult.rawValue, false);
-    assert.ok(auditResult.debugString.includes('33.33%'));
+    assert.ok(auditResult.debugString.includes('33%'));
   });
 
   it('passes when there is no text', () => {
     const artifacts = {
       URL,
       Viewport: validViewport,
-      Styles,
-      FontSize: [
-        {textLength: 0},
-        {textLength: 0},
-      ],
+      FontSize: {
+        totalTextLength: 0,
+        visitedTextLength: 0,
+        failingTextLength: 0,
+        failingNodesData: [
+          {textLength: 0, fontSize: 14, node: {nodeId: 1, localName: 'p', attributes: []}},
+        ],
+      },
     };
 
     const auditResult = FontSizeAudit.audit(artifacts);
@@ -64,12 +69,15 @@ describe('SEO: Font size audit', () => {
     const artifacts = {
       URL,
       Viewport: validViewport,
-      Styles,
-      FontSize: [
-        {textLength: 1, fontSize: 15, node: {nodeId: 1, localName: 'p', attributes: []}},
-        {textLength: 2, fontSize: 16, node: {nodeId: 2, localName: 'p', attributes: []}},
-        {textLength: 2, fontSize: 24, node: {nodeId: 3, localName: 'p', attributes: []}},
-      ],
+      FontSize: {
+        totalTextLength: 330,
+        visitedTextLength: 330,
+        failingTextLength: 33,
+        failingNodesData: [
+          {textLength: 11, fontSize: 14, node: {nodeId: 1, localName: 'p', attributes: []}},
+          {textLength: 22, fontSize: 15, node: {nodeId: 2, localName: 'p', attributes: []}},
+        ],
+      },
     };
     const auditResult = FontSizeAudit.audit(artifacts);
     assert.equal(auditResult.rawValue, true);
@@ -95,17 +103,59 @@ describe('SEO: Font size audit', () => {
     const artifacts = {
       URL,
       Viewport: validViewport,
-      Styles,
-      FontSize: [
-        {textLength: 3, fontSize: 15, node: {nodeId: 1}, cssRule: style1},
-        {textLength: 2, fontSize: 14, node: {nodeId: 2}, cssRule: style2},
-        {textLength: 2, fontSize: 14, node: {nodeId: 3}, cssRule: style2},
-      ],
+      FontSize: {
+        totalTextLength: 7,
+        visitedTextLength: 7,
+        failingTextLength: 7,
+        failingNodesData: [
+          {textLength: 3, fontSize: 15, node: {nodeId: 1}, cssRule: style1},
+          {textLength: 2, fontSize: 14, node: {nodeId: 2}, cssRule: style2},
+          {textLength: 2, fontSize: 14, node: {nodeId: 3}, cssRule: style2},
+        ],
+      },
     };
     const auditResult = FontSizeAudit.audit(artifacts);
 
     assert.equal(auditResult.rawValue, false);
     assert.equal(auditResult.details.items.length, 2);
     assert.equal(auditResult.details.items[0][2].text, '57.14%');
+  });
+
+  it('adds "Other" category for failing text that wasn\'t analyzed', () => {
+    const artifacts = {
+      URL,
+      Viewport: validViewport,
+      FontSize: {
+        totalTextLength: 100,
+        visitedTextLength: 100,
+        failingTextLength: 50,
+        failingNodesData: [
+          {textLength: 10, fontSize: 14, node: {nodeId: 1, localName: 'p', attributes: []}},
+        ],
+      },
+    };
+    const auditResult = FontSizeAudit.audit(artifacts);
+    assert.equal(auditResult.rawValue, false);
+    assert.equal(auditResult.details.items.length, 2);
+    assert.equal(auditResult.details.items[1][0].text, 'Other');
+    assert.equal(auditResult.details.items[1][2].text, '40.00%');
+  });
+
+  it('informs user if audit haven\'t covered all text on the page', () => {
+    const artifacts = {
+      URL,
+      Viewport: validViewport,
+      FontSize: {
+        totalTextLength: 100,
+        visitedTextLength: 50,
+        failingTextLength: 50,
+        failingNodesData: [
+          {textLength: 50, fontSize: 14, node: {nodeId: 1, localName: 'p', attributes: []}},
+        ],
+      },
+    };
+    const auditResult = FontSizeAudit.audit(artifacts);
+    assert.equal(auditResult.rawValue, false);
+    assert.ok(auditResult.debugString.includes('50%'));
   });
 });

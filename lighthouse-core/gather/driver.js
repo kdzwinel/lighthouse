@@ -781,7 +781,7 @@ class Driver {
   }
 
   /**
-   * Returns the flattened list of all DOM nodes within the document.
+   * Returns the flattened list of all DOM elements within the document.
    * @param {boolean=} pierce Whether to pierce through shadow trees and iframes.
    *     True by default.
    * @return {!Promise<!Array<!Element>>} The found elements, or [], resolved in a promise
@@ -794,6 +794,12 @@ class Driver {
       );
   }
 
+  /**
+   * Returns the flattened list of all DOM nodes within the document.
+   * @param {boolean=} pierce Whether to pierce through shadow trees and iframes.
+   *     True by default.
+   * @return {!Promise<!Array<!Node>>} The found nodes, or [], resolved in a promise
+   */
   getNodesInDocument(pierce = true) {
     return this.sendCommand('DOM.getFlattenedDocument', {depth: -1, pierce})
       .then(result => result.nodes ? result.nodes : []);

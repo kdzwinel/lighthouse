@@ -10,21 +10,21 @@
 const FontSizeGather = require('../../../../gather/gatherers/seo/font-size');
 const assert = require('assert');
 let fontSizeGather;
-const body = {
-  nodeName: 'BODY',
-  children: [
-    {nodeValue: ' text ', nodeType: global.Node.TEXT_NODE, parentId: 1},
-    {nodeValue: ' text ', nodeType: global.Node.ELEMENT_NODE},
-    {nodeValue: '      ', nodeType: global.Node.TEXT_NODE},
-    {nodeValue: 'texttext', nodeType: global.Node.TEXT_NODE, parentId: 2},
-  ],
-};
-const dom = {
-  root: {
-    nodeName: 'HTML',
-    children: [body],
-  },
-};
+
+const smallText = ' body small text ';
+const bigText = 'body big text';
+const bodyNode = {nodeId: 3, nodeName: 'BODY', parentId: 1};
+const nodes = [
+  {nodeId: 1, nodeName: 'HTML'},
+  {nodeId: 2, nodeName: 'HEAD', parentId: 1},
+  bodyNode,
+  {nodeId: 4, nodeValue: 'head text', nodeType: global.Node.TEXT_NODE, parentId: 2},
+  {nodeId: 5, nodeValue: smallText, nodeType: global.Node.TEXT_NODE, parentId: 3},
+  {nodeId: 6, nodeName: 'H1', parentId: 3},
+  {nodeId: 7, nodeValue: bigText, nodeType: global.Node.TEXT_NODE, parentId: 6},
+  {nodeId: 8, nodeName: 'SCRIPT', parentId: 3},
+  {nodeId: 9, nodeValue: 'script text', nodeType: global.Node.TEXT_NODE, parentId: 8},
+];
 
 describe('Font size gatherer', () => {
   // Reset the Gatherer before each test.
@@ -39,11 +39,9 @@ describe('Font size gatherer', () => {
         off() {},
         sendCommand(command, params) {
           let result;
-          if (command === 'DOM.getDocument') {
-            result = dom;
-          } else if (command === 'CSS.getComputedStyleForNode') {
+          if (command === 'CSS.getComputedStyleForNode') {
             result = {computedStyle: [
-              {name: 'font-size', value: params.nodeId === 1 ? 10 : 20},
+              {name: 'font-size', value: params.nodeId === bodyNode.nodeId ? 10 : 20},
             ]};
           } else if (command === 'CSS.getMatchedStylesForNode') {
             result = {
@@ -56,22 +54,25 @@ describe('Font size gatherer', () => {
 
           return Promise.resolve(result);
         },
+        getNodesInDocument() {
+          return Promise.resolve(nodes);
+        },
       },
     }).then(artifact => {
-      assert.deepEqual(artifact, [
-        {
+      const expectedFailingTextLength = smallText.trim().length;
+      const expectedTotalTextLength = bigText.trim().length + expectedFailingTextLength;
+
+      assert.deepEqual(artifact, {
+        failingTextLength: expectedFailingTextLength,
+        visitedTextLength: expectedTotalTextLength,
+        totalTextLength: expectedTotalTextLength,
+        failingNodesData: [{
+          cssRule: undefined,
           fontSize: 10,
-          textLength: 4,
-          cssRule: undefined,
-          node: body,
-        },
-        {
-          fontSize: 20,
-          textLength: 8,
-          cssRule: undefined,
-          node: body,
-        },
-      ]);
+          node: bodyNode,
+          textLength: expectedFailingTextLength,
+        }],
+      });
     });
   });
 });

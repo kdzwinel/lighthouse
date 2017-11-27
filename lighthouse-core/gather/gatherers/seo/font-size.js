@@ -119,7 +119,7 @@ function getFontSizeInformation(driver, node) {
       return {
         fontSize: parseInt(fontSizeProperty.value, 10),
         textLength: getNodeTextLength(node),
-        node: node.parentNode
+        node: node.parentNode,
       };
     });
 }
