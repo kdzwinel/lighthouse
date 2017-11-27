@@ -156,7 +156,9 @@ class FontSize extends Gatherer {
       .then(nodes => {
         const textNodes = nodes.filter(isNonEmptyTextNode);
         totalTextLength = textNodes.reduce((sum, node) => sum += getNodeTextLength(node), 0);
-        const visitedNodes = textNodes.slice(0, MAX_NODES_VISITED);
+        const visitedNodes = textNodes
+          .sort((a, b) => getNodeTextLength(b) - getNodeTextLength(a))
+          .slice(0, MAX_NODES_VISITED);
         visitedTextLength = visitedNodes.reduce((sum, node) => sum += getNodeTextLength(node), 0);
 
         return visitedNodes;
