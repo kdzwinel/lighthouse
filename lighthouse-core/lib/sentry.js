@@ -3,6 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
+// @ts-nocheck
 'use strict';
 
 const log = require('lighthouse-logger');
@@ -19,6 +20,13 @@ const sentryApi = {
   getContext: noop,
 };
 
+const SAMPLED_ERRORS = [
+  {pattern: /Unable to load/, rate: 0.1},
+  {pattern: /Failed to decode/, rate: 0.1},
+  {pattern: /No resource with given id/, rate: 0.01},
+  {pattern: /No node with given id/, rate: 0.01},
+];
+
 /**
  * We'll create a delegate for sentry so that environments without error reporting enabled will use
  * noop functions and environments with error reporting will call the actual Sentry methods.
@@ -31,7 +39,7 @@ sentryDelegate.init = function init(opts) {
   }
 
   const environmentData = opts.environmentData || {};
-  const sentryConfig = Object.assign({}, environmentData, {allowSecretKey: true});
+  const sentryConfig = Object.assign({}, environmentData, {captureUnhandledRejections: true});
 
   try {
     const Sentry = require('raven');
@@ -42,11 +50,24 @@ sentryDelegate.init = function init(opts) {
     });
 
     // Special case captureException to return a Promise so we don't process.exit too early
-    sentryDelegate.captureException = (...args) => {
-      if (args[0] && args[0].expected) return Promise.resolve();
+    sentryDelegate.captureException = (err, opts) => {
+      opts = opts || {};
+
+      const empty = Promise.resolve();
+      // Ignore if there wasn't an error
+      if (!err) return empty;
+      // Ignore expected errors
+      if (err.expected) return empty;
+      // Sample known errors that occur at a high frequency
+      const sampledErrorMatch = SAMPLED_ERRORS.find(sample => sample.pattern.test(err.message));
+      if (sampledErrorMatch && sampledErrorMatch.rate <= Math.random()) return empty;
+      // Protocol errors all share same stack trace, so add more to fingerprint
+      if (err.protocolMethod) {
+        opts.fingerprint = ['{{ default }}', err.protocolMethod, err.protocolError];
+      }
 
       return new Promise(resolve => {
-        Sentry.captureException(...args, () => resolve());
+        Sentry.captureException(err, opts, () => resolve());
       });
     };
   } catch (e) {

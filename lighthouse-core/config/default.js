@@ -40,6 +40,7 @@ module.exports = {
       'seo/font-size',
       'seo/crawlable-links',
       'seo/meta-robots',
+      'seo/hreflang',
     ],
   },
   {
@@ -167,6 +168,7 @@ module.exports = {
     'seo/font-size',
     'seo/link-text',
     'seo/is-crawlable',
+    'seo/hreflang',
   ],
 
   groups: {

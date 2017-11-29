@@ -3,6 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
+// @ts-nocheck
 'use strict';
 
 const EventEmitter = require('events').EventEmitter;
@@ -30,6 +31,15 @@ class Connection {
     return Promise.reject(new Error('Not implemented'));
   }
 
+
+  /**
+   * @return {!Promise<string>}
+   */
+  wsEndpoint() {
+    return Promise.reject(new Error('Not implemented'));
+  }
+
+
   /**
    * Call protocol methods
    * @param {!string} method
@@ -50,7 +60,7 @@ class Connection {
   /**
    * Bind listeners for connection events
    * @param {!string} eventName
-   * @param {function(...)} cb
+   * @param {function(...args)} cb
    */
   on(eventName, cb) {
     if (eventName !== 'notification') {
@@ -91,7 +101,10 @@ class Connection {
           log.formatProtocol('method <= browser ERR', {method: callback.method}, logLevel);
           let errMsg = `(${callback.method}): ${object.error.message}`;
           if (object.error.data) errMsg += ` (${object.error.data})`;
-          throw new Error(`Protocol error ${errMsg}`);
+          const error = new Error(`Protocol error ${errMsg}`);
+          error.protocolMethod = callback.method;
+          error.protocolError = object.error.message;
+          throw error;
         }
 
         log.formatProtocol('method <= browser OK',

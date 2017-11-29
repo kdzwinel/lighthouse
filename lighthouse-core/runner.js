@@ -3,6 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
+// @ts-nocheck
 'use strict';
 
 const Driver = require('./gather/driver.js');
@@ -167,7 +168,7 @@ class Runner {
         };
       })
       .catch(err => {
-        return Sentry.captureException(err).then(() => {
+        return Sentry.captureException(err, {level: 'fatal'}).then(() => {
           throw err;
         });
       });
@@ -209,7 +210,7 @@ class Runner {
           const artifactError = artifacts[artifactName];
           Sentry.captureException(artifactError, {
             tags: {gatherer: artifactName},
-            level: 'warning',
+            level: 'error',
           });
 
           log.warn('Runner', `${artifactName} gatherer, required by audit ${audit.meta.name},` +
@@ -232,7 +233,7 @@ class Runner {
         throw err;
       }
 
-      Sentry.captureException(err, {tags: {audit: audit.meta.name}, level: 'warning'});
+      Sentry.captureException(err, {tags: {audit: audit.meta.name}, level: 'error'});
       // Non-fatal error become error audit result.
       return Audit.generateErrorAuditResult(audit, 'Audit error: ' + err.message);
     }).then(result => {
