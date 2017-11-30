@@ -57,6 +57,7 @@ module.exports = {
         {id: 'http-status-code', weight: 1, group: 'seo-crawl'},
         {id: 'link-text', weight: 1, group: 'seo-content'},
         {id: 'is-crawlable', weight: 1, group: 'seo-crawl'},
+        {id: 'hreflang', weight: 1, group: 'seo-content'},
       ],
     },
   },
