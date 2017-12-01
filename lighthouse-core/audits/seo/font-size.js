@@ -89,7 +89,7 @@ function findStyleRuleSource(baseURL, styleDeclaration, node) {
       let source = `${url.href}`;
 
       if (range) {
-        // `stylesheet` can be either an external file (stylesheet.startLine will allways be 0),
+        // `stylesheet` can be either an external file (stylesheet.startLine will always be 0),
         // or a <style> block (stylesheet.startLine will vary)
         const absoluteStartLine = range.startLine + stylesheet.startLine + 1;
         const absoluteStartColumn = range.startColumn + stylesheet.startColumn + 1;
