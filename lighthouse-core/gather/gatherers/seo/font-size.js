@@ -5,6 +5,15 @@
  */
 'use strict';
 
+/**
+ * @fileoverview Extracts information about illegible text from the page.
+ *
+ * In effort to keep this audit's execution time around 1s, maximum number of protocol calls was limited.
+ * Firstly, number of visited nodes (text nodes for which font size was checked) is capped. Secondly, number of failing nodes that are analyzed (for which detailed CSS information is extracted) is also limited.
+ *
+ * This gatherer collects stylesheet metadata by itself, instead of relying on the styles gatherer which is slow (because it parses the stylesheet content).
+ */
+
 const CSSMatchedStyles = require('../../../lib/web-inspector').CSSMatchedStyles;
 const Gatherer = require('../gatherer');
 const FONT_SIZE_PROPERTY_NAME = 'font-size';
