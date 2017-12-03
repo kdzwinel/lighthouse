@@ -154,10 +154,11 @@ class FontSize extends Audit {
     }
 
     const {
-      failingNodesData,
-      totalTextLength,
+      analyzedFailingNodesData,
+      analyzedFailingTextLength,
       failingTextLength,
       visitedTextLength,
+      totalTextLength,
     } = artifacts.FontSize;
 
     if (totalTextLength === 0) {
@@ -166,7 +167,7 @@ class FontSize extends Audit {
       };
     }
 
-    const failingRules = getUniqueFailingRules(failingNodesData);
+    const failingRules = getUniqueFailingRules(analyzedFailingNodesData);
     const percentageOfPassingText =
       (visitedTextLength - failingTextLength) / visitedTextLength * 100;
     const pageUrl = artifacts.URL.finalUrl;
@@ -192,8 +193,6 @@ class FontSize extends Audit {
       });
 
     // all failing nodes which were not fully analyzed will be shown in the 'Other' category
-    const analyzedFailingTextLength =
-      failingRules.reduce((sum, {textLength}) => sum += textLength, 0);
     if (analyzedFailingTextLength < failingTextLength) {
       const percentageOfUnanalyzedFailingText =
         (failingTextLength - analyzedFailingTextLength) / visitedTextLength * 100;

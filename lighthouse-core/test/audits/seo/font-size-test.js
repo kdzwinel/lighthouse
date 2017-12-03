@@ -35,7 +35,8 @@ describe('SEO: Font size audit', () => {
         totalTextLength: 100,
         visitedTextLength: 100,
         failingTextLength: 33,
-        failingNodesData: [
+        analyzedFailingTextLength: 33,
+        analyzedFailingNodesData: [
           {textLength: 11, fontSize: 14, node: {nodeId: 1, localName: 'p', attributes: []}},
           {textLength: 22, fontSize: 15, node: {nodeId: 2, localName: 'p', attributes: []}},
         ],
@@ -55,7 +56,8 @@ describe('SEO: Font size audit', () => {
         totalTextLength: 0,
         visitedTextLength: 0,
         failingTextLength: 0,
-        failingNodesData: [
+        analyzedFailingTextLength: 0,
+        analyzedFailingNodesData: [
           {textLength: 0, fontSize: 14, node: {nodeId: 1, localName: 'p', attributes: []}},
         ],
       },
@@ -73,7 +75,8 @@ describe('SEO: Font size audit', () => {
         totalTextLength: 330,
         visitedTextLength: 330,
         failingTextLength: 33,
-        failingNodesData: [
+        analyzedFailingTextLength: 33,
+        analyzedFailingNodesData: [
           {textLength: 11, fontSize: 14, node: {nodeId: 1, localName: 'p', attributes: []}},
           {textLength: 22, fontSize: 15, node: {nodeId: 2, localName: 'p', attributes: []}},
         ],
@@ -107,7 +110,8 @@ describe('SEO: Font size audit', () => {
         totalTextLength: 7,
         visitedTextLength: 7,
         failingTextLength: 7,
-        failingNodesData: [
+        analyzedFailingTextLength: 7,
+        analyzedFailingNodesData: [
           {textLength: 3, fontSize: 15, node: {nodeId: 1}, cssRule: style1},
           {textLength: 2, fontSize: 14, node: {nodeId: 2}, cssRule: style2},
           {textLength: 2, fontSize: 14, node: {nodeId: 3}, cssRule: style2},
@@ -129,7 +133,8 @@ describe('SEO: Font size audit', () => {
         totalTextLength: 100,
         visitedTextLength: 100,
         failingTextLength: 50,
-        failingNodesData: [
+        analyzedFailingTextLength: 10,
+        analyzedFailingNodesData: [
           {textLength: 10, fontSize: 14, node: {nodeId: 1, localName: 'p', attributes: []}},
         ],
       },
@@ -149,7 +154,8 @@ describe('SEO: Font size audit', () => {
         totalTextLength: 100,
         visitedTextLength: 50,
         failingTextLength: 50,
-        failingNodesData: [
+        analyzedFailingTextLength: 50,
+        analyzedFailingNodesData: [
           {textLength: 50, fontSize: 14, node: {nodeId: 1, localName: 'p', attributes: []}},
         ],
       },

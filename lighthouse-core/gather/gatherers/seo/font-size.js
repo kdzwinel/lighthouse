@@ -137,7 +137,7 @@ function isNonEmptyTextNode(node) {
 class FontSize extends Gatherer {
   /**
    * @param {{driver: !Object}} options Run options
-   * @return {!Promise<{totalTextLength: number, failingTextLength: number, visitedTextLength: number, failingNodesData: Array<{fontSize: number, textLength: number, node: Node, cssRule: WebInspector.CSSStyleDeclaration}>}>} font-size analysis
+   * @return {!Promise<{totalTextLength: number, failingTextLength: number, visitedTextLength: number, analyzedFailingTextLength: number, analyzedFailingNodesData: Array<{fontSize: number, textLength: number, node: Node, cssRule: WebInspector.CSSStyleDeclaration}>}>} font-size analysis
    */
   afterPass(options) {
     const stylesheets = new Map();
@@ -182,10 +182,13 @@ class FontSize extends Gatherer {
           )
         );
       })
-      .then(failingNodesData => {
+      .then(analyzedFailingNodesData => {
         options.driver.off('CSS.styleSheetAdded', onStylesheetAdd);
 
-        failingNodesData
+        const analyzedFailingTextLength = analyzedFailingNodesData
+          .reduce((sum, {textLength}) => sum += textLength, 0);
+
+        analyzedFailingNodesData
           .filter(data => data.cssRule && data.cssRule.styleSheetId)
           .forEach(data => data.cssRule.stylesheet = stylesheets.get(data.cssRule.styleSheetId));
 
@@ -193,7 +196,8 @@ class FontSize extends Gatherer {
           options.driver.sendCommand('DOM.disable'),
           options.driver.sendCommand('CSS.disable'),
         ]).then(_ => ({
-          failingNodesData,
+          analyzedFailingNodesData,
+          analyzedFailingTextLength,
           failingTextLength,
           visitedTextLength,
           totalTextLength,

@@ -61,12 +61,14 @@ describe('Font size gatherer', () => {
     }).then(artifact => {
       const expectedFailingTextLength = smallText.trim().length;
       const expectedTotalTextLength = bigText.trim().length + expectedFailingTextLength;
+      const expectedAnalyzedFailingTextLength = expectedFailingTextLength;
 
       assert.deepEqual(artifact, {
+        analyzedFailingTextLength: expectedAnalyzedFailingTextLength,
         failingTextLength: expectedFailingTextLength,
         visitedTextLength: expectedTotalTextLength,
         totalTextLength: expectedTotalTextLength,
-        failingNodesData: [{
+        analyzedFailingNodesData: [{
           cssRule: undefined,
           fontSize: 10,
           node: bodyNode,
