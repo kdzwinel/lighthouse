@@ -9,13 +9,7 @@ module.exports = {
   extends: 'lighthouse:default',
   passes: [{
     passName: 'defaultPass',
-    gatherers: [
-      'seo/meta-description',
-      'seo/font-size',
-      'seo/crawlable-links',
-      'seo/meta-robots',
-      'seo/hreflang',
-    ],
+    gatherers: [],
   }],
   audits: [
     'seo/meta-description',
