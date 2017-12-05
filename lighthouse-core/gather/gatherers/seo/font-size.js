@@ -130,6 +130,10 @@ function getFontSizeInformation(driver, node) {
         textLength: getNodeTextLength(node),
         node: node.parentNode,
       };
+    })
+    .catch(err => {
+      require('../../../lib/sentry.js').captureException(err);
+      return null;
     });
 }
 
@@ -176,6 +180,7 @@ class FontSize extends Gatherer {
         Promise.all(textNodes.map(node => getFontSizeInformation(options.driver, node))))
       .then(fontSizeInfo => {
         const failingNodes = fontSizeInfo
+          .filter(Boolean)
           .filter(({fontSize}) => fontSize < MINIMAL_LEGIBLE_FONT_SIZE_PX);
         failingTextLength = failingNodes.reduce((sum, {textLength}) => sum += textLength, 0);
 
