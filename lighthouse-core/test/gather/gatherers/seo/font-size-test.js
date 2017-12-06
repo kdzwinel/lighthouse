@@ -13,7 +13,9 @@ let fontSizeGather;
 
 const smallText = ' body small text ';
 const bigText = 'body big text';
+const failingText = 'failing text';
 const bodyNode = {nodeId: 3, nodeName: 'BODY', parentId: 1};
+const failingNode = {nodeId: 10, nodeName: 'P', parentId: 3};
 const nodes = [
   {nodeId: 1, nodeName: 'HTML'},
   {nodeId: 2, nodeName: 'HEAD', parentId: 1},
@@ -24,6 +26,8 @@ const nodes = [
   {nodeId: 7, nodeValue: bigText, nodeType: global.Node.TEXT_NODE, parentId: 6},
   {nodeId: 8, nodeName: 'SCRIPT', parentId: 3},
   {nodeId: 9, nodeValue: 'script text', nodeType: global.Node.TEXT_NODE, parentId: 8},
+  failingNode,
+  {nodeId: 11, nodeValue: failingText, nodeType: global.Node.TEXT_NODE, parentId: 10},
 ];
 
 describe('Font size gatherer', () => {
@@ -40,6 +44,10 @@ describe('Font size gatherer', () => {
         sendCommand(command, params) {
           let result;
           if (command === 'CSS.getComputedStyleForNode') {
+            if (params.nodeId === failingNode.nodeId) {
+              return Promise.reject();
+            }
+
             result = {computedStyle: [
               {name: 'font-size', value: params.nodeId === bodyNode.nodeId ? 10 : 20},
             ]};
@@ -60,13 +68,14 @@ describe('Font size gatherer', () => {
       },
     }).then(artifact => {
       const expectedFailingTextLength = smallText.trim().length;
-      const expectedTotalTextLength = bigText.trim().length + expectedFailingTextLength;
+      const expectedVisitedTextLength = bigText.trim().length + expectedFailingTextLength;
+      const expectedTotalTextLength = failingText.trim().length + expectedVisitedTextLength;
       const expectedAnalyzedFailingTextLength = expectedFailingTextLength;
 
       assert.deepEqual(artifact, {
         analyzedFailingTextLength: expectedAnalyzedFailingTextLength,
         failingTextLength: expectedFailingTextLength,
-        visitedTextLength: expectedTotalTextLength,
+        visitedTextLength: expectedVisitedTextLength,
         totalTextLength: expectedTotalTextLength,
         analyzedFailingNodesData: [{
           cssRule: undefined,

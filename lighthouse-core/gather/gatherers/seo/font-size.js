@@ -86,12 +86,12 @@ function getEffectiveRule(property, node, {
   );
 
   const nodeStyles = matchedStyles.nodeStyles();
-  const matchingRule = nodeStyles.find(style => {
-    const foundProperty = style.allProperties.find(item => item.name === property);
-    // the applicable property will be the only one that isn't in the "overloaded" state.
-    return foundProperty &&
-      matchedStyles.propertyState(foundProperty) !== CSSMatchedStyles.PropertyState.Overloaded;
-  });
+  const matchingRule = nodeStyles
+    .find(style =>
+      // the applicable property will be the only one that isn't in the "overloaded" state.
+      style.allProperties.some(item => item.name === property &&
+        matchedStyles.propertyState(item) !== CSSMatchedStyles.PropertyState.Overloaded)
+    );
 
   return matchingRule;
 }
@@ -169,18 +169,18 @@ class FontSize extends Gatherer {
       .then(nodes => {
         const textNodes = nodes.filter(isNonEmptyTextNode);
         totalTextLength = textNodes.reduce((sum, node) => sum += getNodeTextLength(node), 0);
-        const visitedNodes = textNodes
+        const nodesToVisit = textNodes
           .sort((a, b) => getNodeTextLength(b) - getNodeTextLength(a))
           .slice(0, MAX_NODES_VISITED);
-        visitedTextLength = visitedNodes.reduce((sum, node) => sum += getNodeTextLength(node), 0);
 
-        return visitedNodes;
+        return nodesToVisit;
       })
       .then(textNodes =>
         Promise.all(textNodes.map(node => getFontSizeInformation(options.driver, node))))
       .then(fontSizeInfo => {
-        const failingNodes = fontSizeInfo
-          .filter(Boolean)
+        const visitedNodes = fontSizeInfo.filter(Boolean);
+        visitedTextLength = visitedNodes.reduce((sum, {textLength}) => sum += textLength, 0);
+        const failingNodes = visitedNodes
           .filter(({fontSize}) => fontSize < MINIMAL_LEGIBLE_FONT_SIZE_PX);
         failingTextLength = failingNodes.reduce((sum, {textLength}) => sum += textLength, 0);
 
