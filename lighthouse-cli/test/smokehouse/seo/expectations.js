@@ -44,7 +44,7 @@ module.exports = [
         rawValue: true,
         details: {
           items: {
-            length: 5,
+            length: 6,
           },
         },
       },
