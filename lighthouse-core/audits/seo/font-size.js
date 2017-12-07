@@ -83,18 +83,25 @@ function findStyleRuleSource(baseURL, styleDeclaration, node) {
     const stylesheet = styleDeclaration.stylesheet;
 
     if (stylesheet) {
-      const url = parseURL(stylesheet.sourceURL, baseURL);
-      const range = styleDeclaration.range;
+      let source;
       const selector = rule.selectors.map(item => item.text).join(', ');
-      let source = `${url.href}`;
 
-      if (range) {
-        // `stylesheet` can be either an external file (stylesheet.startLine will always be 0),
-        // or a <style> block (stylesheet.startLine will vary)
-        const absoluteStartLine = range.startLine + stylesheet.startLine + 1;
-        const absoluteStartColumn = range.startColumn + stylesheet.startColumn + 1;
+      if (stylesheet.sourceURL) {
+        const url = parseURL(stylesheet.sourceURL, baseURL);
+        const range = styleDeclaration.range;
+        source = `${url.href}`;
 
-        source += `:${absoluteStartLine}:${absoluteStartColumn}`;
+        if (range) {
+          // `stylesheet` can be either an external file (stylesheet.startLine will always be 0),
+          // or a <style> block (stylesheet.startLine will vary)
+          const absoluteStartLine = range.startLine + stylesheet.startLine + 1;
+          const absoluteStartColumn = range.startColumn + stylesheet.startColumn + 1;
+
+          source += `:${absoluteStartLine}:${absoluteStartColumn}`;
+        }
+      } else {
+        // dynamically injected to page
+        source = 'dynamic';
       }
 
       return {
@@ -175,7 +182,7 @@ class FontSize extends Audit {
     const headings = [
       {key: 'source', itemType: 'url', text: 'Source'},
       {key: 'selector', itemType: 'code', text: 'Selector'},
-      {key: 'coverage', itemType: 'text', text: 'Coverage'},
+      {key: 'coverage', itemType: 'text', text: '% of Page Text'},
       {key: 'fontSize', itemType: 'text', text: 'Font Size'},
     ];
 
@@ -198,10 +205,19 @@ class FontSize extends Audit {
         (failingTextLength - analyzedFailingTextLength) / visitedTextLength * 100;
 
       tableData.push({
-        source: 'Other',
+        source: 'Addtl illegible text',
         selector: null,
         coverage: `${percentageOfUnanalyzedFailingText.toFixed(2)}%`,
         fontSize: '< 16px',
+      });
+    }
+
+    if (percentageOfPassingText > 0) {
+      tableData.push({
+        source: 'Legible text',
+        selector: null,
+        coverage: `${percentageOfPassingText.toFixed(2)}%`,
+        fontSize: '≥ 16px',
       });
     }
 

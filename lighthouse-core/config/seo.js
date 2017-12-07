@@ -11,14 +11,7 @@ module.exports = {
     passName: 'defaultPass',
     gatherers: [],
   }],
-  audits: [
-    'seo/meta-description',
-    'seo/http-status-code',
-    'seo/font-size',
-    'seo/link-text',
-    'seo/is-crawlable',
-    'seo/hreflang',
-  ],
+  audits: [],
   groups: {
     'seo-mobile': {
       title: 'Mobile Friendly',

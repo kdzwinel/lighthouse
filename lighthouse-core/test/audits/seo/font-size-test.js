@@ -141,8 +141,8 @@ describe('SEO: Font size audit', () => {
     };
     const auditResult = FontSizeAudit.audit(artifacts);
     assert.equal(auditResult.rawValue, false);
-    assert.equal(auditResult.details.items.length, 2);
-    assert.equal(auditResult.details.items[1][0].text, 'Other');
+    assert.equal(auditResult.details.items.length, 3);
+    assert.equal(auditResult.details.items[1][0].text, 'Additional unanalyzed small text');
     assert.equal(auditResult.details.items[1][2].text, '40.00%');
   });
 
