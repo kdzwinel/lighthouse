@@ -38,8 +38,44 @@ function getUniqueFailingRules(fontSizeArtifact) {
 }
 
 /**
+ * @param {Array<string>} attributes
+ * @returns {Map<string, string>}
+ */
+function getAttributeMap(attributes) {
+  const map = new Map();
+
+  for (let i=0; i<attributes.length; i+=2) {
+    const name = attributes[i].toLowerCase();
+    const value = attributes[i + 1].trim();
+
+    if (value) {
+      map.set(name, value);
+    }
+  }
+
+  return map;
+}
+
+/**
+ * TODO: return unique selector, like axe-core does, instead of just id/class/name of a single node
  * @param {Node} node
- * @return {{type:string, snippet:string}}
+ * @returns {string}
+ */
+function getSelector(node) {
+  const attributeMap = getAttributeMap(node.attributes);
+
+  if (attributeMap.has('id')) {
+    return '#' + attributeMap.get('id');
+  } else if (attributeMap.has('class')) {
+    return '.' + attributeMap.get('class').split(/\s+/).join('.');
+  }
+
+  return node.localName.toLowerCase();
+}
+
+/**
+ * @param {Node} node
+ * @return {{type:string, selector: string, snippet:string}}
  */
 function nodeToTableNode(node) {
   const attributesString = node.attributes.map((value, idx) =>
@@ -48,6 +84,7 @@ function nodeToTableNode(node) {
 
   return {
     type: 'node',
+    selector: node.parentNode ? getSelector(node.parentNode) : '',
     snippet: `<${node.localName}${attributesString}>`,
   };
 }
