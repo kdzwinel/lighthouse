@@ -10,13 +10,13 @@ const Gatherer = require('../gatherer');
 class Canonical extends Gatherer {
   /**
    * @param {{driver: !Object}} options Run options
-   * @return {!Promise<?string>} Href value of link[rel=canonical] node found in HEAD, or null
+   * @return {!Promise<!Array<string>>} Href value of link[rel=canonical] node found in HEAD, or null
    */
   afterPass(options) {
     const driver = options.driver;
 
-    return driver.querySelector('head link[rel="canonical" i]')
-      .then(node => node && node.getAttribute('href'));
+    return driver.querySelectorAll('head link[rel="canonical" i]')
+      .then(nodes => Promise.all(nodes.map(node => node.getAttribute('href'))));
   }
 }
 

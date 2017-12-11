@@ -19,7 +19,7 @@ describe('SEO: Document has valid canonical link', () => {
     const artifacts = {
       devtoolsLogs: {[CanonicalAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
-      Canonical: 'https://example.com/',
+      Canonical: ['https://example.com/'],
     };
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {
@@ -35,7 +35,7 @@ describe('SEO: Document has valid canonical link', () => {
     const artifacts = {
       devtoolsLogs: {[CanonicalAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
-      Canonical: 'https://example.com/',
+      Canonical: ['https://example.com/'],
     };
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {
@@ -51,7 +51,7 @@ describe('SEO: Document has valid canonical link', () => {
     const artifacts = {
       devtoolsLogs: {[CanonicalAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
-      Canonical: '/',
+      Canonical: ['/'],
     };
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {
@@ -67,7 +67,7 @@ describe('SEO: Document has valid canonical link', () => {
     const artifacts = {
       devtoolsLogs: {[CanonicalAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
-      Canonical: 'https://example.com/de/',
+      Canonical: ['https://example.com/de/'],
     };
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {
@@ -83,7 +83,7 @@ describe('SEO: Document has valid canonical link', () => {
     const artifacts = {
       devtoolsLogs: {[CanonicalAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
-      Canonical: 'https://example.de/',
+      Canonical: ['https://example.de/'],
     };
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {

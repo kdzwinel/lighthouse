@@ -22,25 +22,45 @@ function getCanonicalLinkFromHeader(headerValue) {
 }
 
 /**
- * @param {URL} baseURL
  * @param {string} canonicalHref
+ * @param {string} baseHref
  * @returns {boolean}
  */
-function isValidCanonicalLink(baseURL, canonicalHref) {
+function isValidCanonicalLink(canonicalHref, baseHref) {
+  const baseURL = new URL(baseHref);
   const canonicalURL = new URL(canonicalHref, baseURL);
-
-  if (canonicalURL.href !== canonicalHref) {
-    return false;
-  }
 
   if (
     canonicalURL.pathname === '/' &&
-    (baseURL.pathname === '/' || canonicalURL.origin === baseURL.origin)
+    (baseURL.pathname === '/' || baseURL.origin === canonicalURL.origin)
   ) {
     return false;
   }
 
   return true;
+}
+
+/**
+ * @param {string} url
+ * @param {string|URL} base
+ * @returns {boolean}
+ */
+function isValidURL(url, base) {
+  try {
+    new URL(url, base);
+  } catch (e) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @param {string} url
+ * @returns {string}
+ */
+function getTLD(url) {
+  return url.hostname.split('.').slice(-2).join('.');
 }
 
 class Canonical extends Audit {
@@ -68,22 +88,61 @@ class Canonical extends Audit {
 
     return artifacts.requestMainResource(devtoolsLogs)
       .then(mainResource => {
-        const base = new URL(mainResource.url);
-        const failingHeader = mainResource.responseHeaders
-          .find(h => h.name.toLowerCase() === LINK_HEADER);
+        const baseURL = new URL(mainResource.url);
+        const canonicals = [];
 
-        if (failingHeader &&
-          !isValidCanonicalLink(base, getCanonicalLinkFromHeader(failingHeader.value))) {
+        mainResource.responseHeaders
+          .filter(h => h.name.toLowerCase() === LINK_HEADER && getCanonicalLinkFromHeader(h.value))
+          .forEach(h => canonicals.push({
+            source: `${h.name}: ${h.value}`,
+            url: getCanonicalLinkFromHeader(h.value),
+          }));
+
+        artifacts.Canonical.forEach(url => canonicals.push({
+          source: `<link rel="canonical" href="${url}" />`,
+          url,
+        }));
+
+        if (canonicals.length === 0) {
           return {
-            rawValue: false,
-            displayValue: `\`${failingHeader.name}: ${failingHeader.value}\``,
+            rawValue: true,
           };
         }
 
-        if (artifacts.Canonical && !isValidCanonicalLink(base, artifacts.Canonical)) {
+        if (!canonicals.every(c => c.url === canonicals[0].url)) {
           return {
             rawValue: false,
-            displayValue: `\`<link rel="canonical" href="${artifacts.Canonical}" />\``,
+            debugString: 'multiple conflicting URLs',
+          };
+        }
+
+        if (!isValidURL(canonicals[0].url, baseURL)) {
+          return {
+            rawValue: false,
+            debugString: 'invalid URL',
+          };
+        }
+
+        const canonicalURL = new URL(canonicals[0].url, baseURL);
+
+        if (canonicalURL.href !== canonicals[0].url) {
+          return {
+            rawValue: false,
+            debugString: 'relative URL',
+          };
+        }
+
+        if (getTLD(canonicalURL) !== getTLD(baseURL)) {
+          return {
+            rawValue: false,
+            debugString: 'points to a different TLD',
+          };
+        }
+
+        if (!isValidCanonicalLink(canonicalURL, baseURL)) {
+          return {
+            rawValue: false,
+            debugString: 'invalid canonical??',
           };
         }
 
