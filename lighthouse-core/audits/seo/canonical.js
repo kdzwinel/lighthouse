@@ -35,7 +35,7 @@ function isValidCanonicalLink(baseURL, canonicalHref) {
 
   if (
     canonicalURL.pathname === '/' &&
-    (baseURL.pathname !== '/' || canonicalURL.origin === baseURL.origin)
+    (baseURL.pathname === '/' || canonicalURL.origin === baseURL.origin)
   ) {
     return false;
   }
@@ -80,10 +80,10 @@ class Canonical extends Audit {
           };
         }
 
-        if (artifacts.Hreflang && !isValidCanonicalLink(base, artifacts.Hreflang)) {
+        if (artifacts.Canonical && !isValidCanonicalLink(base, artifacts.Canonical)) {
           return {
             rawValue: false,
-            displayValue: `\`<link rel="canonical" href="${artifacts.Hreflang}" />\``,
+            displayValue: `\`<link rel="canonical" href="${artifacts.Canonical}" />\``,
           };
         }
 
