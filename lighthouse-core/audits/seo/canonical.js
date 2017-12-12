@@ -12,24 +12,21 @@ const LINK_HEADER = 'link';
 
 /**
  * @param {string} headerValue
- * @returns {string}
+ * @returns {Array<string>}
  */
-function getCanonicalLinkFromHeader(headerValue) {
+function getCanonicalLinksFromHeader(headerValue) {
   const linkHeader = LinkHeader.parse(headerValue);
   const canonical = linkHeader.get('rel', 'canonical');
 
-  return canonical.length && canonical[0].uri;
+  return canonical.map(c => c.uri);
 }
 
 /**
- * @param {string} canonicalHref
- * @param {string} baseHref
+ * @param {URL} canonicalURL
+ * @param {URL} baseURL
  * @returns {boolean}
  */
-function isValidCanonicalLink(canonicalHref, baseHref) {
-  const baseURL = new URL(baseHref);
-  const canonicalURL = new URL(canonicalHref, baseURL);
-
+function isValidCanonicalLink(canonicalURL, baseURL) {
   if (
     canonicalURL.pathname === '/' &&
     (baseURL.pathname === '/' || baseURL.origin === canonicalURL.origin)
@@ -42,17 +39,24 @@ function isValidCanonicalLink(canonicalHref, baseHref) {
 
 /**
  * @param {string} url
- * @param {string|URL} base
  * @returns {boolean}
  */
-function isValidURL(url, base) {
+function isValidURL(url) {
   try {
-    new URL(url, base);
+    new URL(url, 'https://example.com/');
   } catch (e) {
     return false;
   }
 
   return true;
+}
+
+/**
+ * @param {string} url
+ * @return {boolean}
+ */
+function absoluteURL(url) {
+  return url.indexOf('http:') === 0 || url.indexOf('https:') === 0;
 }
 
 /**
@@ -89,19 +93,13 @@ class Canonical extends Audit {
     return artifacts.requestMainResource(devtoolsLogs)
       .then(mainResource => {
         const baseURL = new URL(mainResource.url);
-        const canonicals = [];
+        let canonicals = [];
 
         mainResource.responseHeaders
-          .filter(h => h.name.toLowerCase() === LINK_HEADER && getCanonicalLinkFromHeader(h.value))
-          .forEach(h => canonicals.push({
-            source: `${h.name}: ${h.value}`,
-            url: getCanonicalLinkFromHeader(h.value),
-          }));
+          .filter(h => h.name.toLowerCase() === LINK_HEADER)
+          .forEach(h => canonicals = canonicals.concat(getCanonicalLinksFromHeader(h.value)));
 
-        artifacts.Canonical.forEach(url => canonicals.push({
-          source: `<link rel="canonical" href="${url}" />`,
-          url,
-        }));
+        canonicals = canonicals.concat(artifacts.Canonical);
 
         if (canonicals.length === 0) {
           return {
@@ -109,28 +107,32 @@ class Canonical extends Audit {
           };
         }
 
-        if (!canonicals.every(c => c.url === canonicals[0].url)) {
+        const invalidURL = canonicals.find(c => !isValidURL(c));
+        if (invalidURL) {
+          return {
+            rawValue: false,
+            debugString: `invalid URL (${invalidURL})`,
+          };
+        }
+
+        const relativeURL = canonicals.find(c => !absoluteURL(c));
+        if (relativeURL) {
+          return {
+            rawValue: false,
+            debugString: `relative URL (${relativeURL})`,
+          };
+        }
+
+        canonicals = canonicals.map(c => new URL(c));
+
+        if (!canonicals.every(c => c.href === canonicals[0].href)) {
           return {
             rawValue: false,
             debugString: 'multiple conflicting URLs',
           };
         }
 
-        if (!isValidURL(canonicals[0].url, baseURL)) {
-          return {
-            rawValue: false,
-            debugString: 'invalid URL',
-          };
-        }
-
-        const canonicalURL = new URL(canonicals[0].url, baseURL);
-
-        if (canonicalURL.href !== canonicals[0].url) {
-          return {
-            rawValue: false,
-            debugString: 'relative URL',
-          };
-        }
+        const canonicalURL = canonicals[0];
 
         if (getTLD(canonicalURL) !== getTLD(baseURL)) {
           return {

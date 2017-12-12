@@ -91,4 +91,76 @@ describe('SEO: Document has valid canonical link', () => {
     });
   });
 
+  // Real tests
+
+  it('fails when canonical link is relative', () => {
+    const mainResource = {
+      url: 'https://example.com/de/',
+      responseHeaders: [],
+    };
+    const artifacts = {
+      devtoolsLogs: {[CanonicalAudit.DEFAULT_PASS]: []},
+      requestMainResource: () => Promise.resolve(mainResource),
+      Canonical: ['/'],
+    };
+
+    return CanonicalAudit.audit(artifacts).then(auditResult => {
+      assert.equal(auditResult.rawValue, false);
+    });
+  });
+
+  it('fails when there are multiple conflicting canonical links', () => {
+    const mainResource = {
+      url: 'http://www.example.com/',
+      responseHeaders: [{
+        name: 'Link',
+        value: '<https://example.com>; rel="canonical"',
+      }],
+    };
+    const artifacts = {
+      devtoolsLogs: {[CanonicalAudit.DEFAULT_PASS]: []},
+      requestMainResource: () => Promise.resolve(mainResource),
+      Canonical: ['https://some.other.example.com'],
+    };
+
+    return CanonicalAudit.audit(artifacts).then(auditResult => {
+      assert.equal(auditResult.rawValue, false);
+    });
+  });
+
+  it('succeeds when there are multiple canonical links which are the same', () => {
+    const mainResource = {
+      url: 'http://www.example.com/',
+      responseHeaders: [{
+        name: 'Link',
+        value: '<https://example.com>; rel="canonical"',
+      }],
+    };
+    const artifacts = {
+      devtoolsLogs: {[CanonicalAudit.DEFAULT_PASS]: []},
+      requestMainResource: () => Promise.resolve(mainResource),
+      Canonical: ['https://example.com/'],
+    };
+
+    return CanonicalAudit.audit(artifacts).then(auditResult => {
+      assert.equal(auditResult.rawValue, true);
+    });
+  });
+
+  it('fails when canonical url is invalid', () => {
+    const mainResource = {
+      url: 'http://www.example.com',
+      responseHeaders: [],
+    };
+    const artifacts = {
+      devtoolsLogs: {[CanonicalAudit.DEFAULT_PASS]: []},
+      requestMainResource: () => Promise.resolve(mainResource),
+      Canonical: ['ttps://example.com'],
+    };
+
+    return CanonicalAudit.audit(artifacts).then(auditResult => {
+      assert.equal(auditResult.rawValue, false);
+    });
+  });
+
 });
