@@ -236,13 +236,13 @@ class FontSize extends Audit {
         };
       });
 
-    // all failing nodes which were not fully analyzed will be shown in the 'Other' category
+    // all failing nodes that were not fully analyzed will be displayed in a single row
     if (analyzedFailingTextLength < failingTextLength) {
       const percentageOfUnanalyzedFailingText =
         (failingTextLength - analyzedFailingTextLength) / visitedTextLength * 100;
 
       tableData.push({
-        source: 'Addtl illegible text',
+        source: 'Add\'l illegible text',
         selector: null,
         coverage: `${percentageOfUnanalyzedFailingText.toFixed(2)}%`,
         fontSize: '< 16px',
