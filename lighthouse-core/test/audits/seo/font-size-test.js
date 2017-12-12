@@ -125,7 +125,7 @@ describe('SEO: Font size audit', () => {
     assert.equal(auditResult.details.items[0][2].text, '57.14%');
   });
 
-  it('adds "Other" category for failing text that wasn\'t analyzed', () => {
+  it('adds a category for failing text that wasn\'t analyzed', () => {
     const artifacts = {
       URL,
       Viewport: validViewport,
@@ -142,7 +142,7 @@ describe('SEO: Font size audit', () => {
     const auditResult = FontSizeAudit.audit(artifacts);
     assert.equal(auditResult.rawValue, false);
     assert.equal(auditResult.details.items.length, 3);
-    assert.equal(auditResult.details.items[1][0].text, 'Addtl illegible text');
+    assert.equal(auditResult.details.items[1][0].text, 'Add\'l illegible text');
     assert.equal(auditResult.details.items[1][2].text, '40.00%');
   });
 
