@@ -178,7 +178,7 @@ class FontSize extends Audit {
       description: 'Document uses legible font sizes.',
       failureDescription: 'Document doesn\'t use legible font sizes.',
       helpText: 'Font sizes less than 16px are too small to be legible and require mobile ' +
-      'visitors to “pinch to zoom” in order to read. ' +
+      'visitors to “pinch to zoom” in order to read. Strive to have >75% of page text ≥16px. ' +
       '[Learn more](https://developers.google.com/speed/docs/insights/UseLegibleFontSizes).',
       requiredArtifacts: ['FontSize', 'URL', 'Viewport'],
     };
