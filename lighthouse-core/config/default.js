@@ -376,6 +376,7 @@ module.exports = {
         {id: 'link-text', weight: 1, group: 'seo-content'},
         {id: 'is-crawlable', weight: 1, group: 'seo-crawl'},
         {id: 'hreflang', weight: 1, group: 'seo-content'},
+        {id: 'font-size', weight: 1, group: 'seo-mobile'},
       ],
     },
   },
