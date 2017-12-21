@@ -6,19 +6,11 @@
 'use strict';
 
 /**
- * Config file for running PWA smokehouse audits.
+ * Config file for running SEO smokehouse audits.
  */
 module.exports = {
-  extends: 'lighthouse:full',
+  extends: 'lighthouse:default',
   settings: {
-    onlyAudits: [
-      'offscreen-images',
-      'uses-webp-images',
-      'uses-optimized-images',
-      'uses-responsive-images',
-      'unminified-javascript',
-      'unused-css-rules',
-      'unused-javascript',
-    ],
+    onlyCategories: ['seo'],
   },
 };

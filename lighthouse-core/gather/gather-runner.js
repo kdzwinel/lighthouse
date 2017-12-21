@@ -138,14 +138,12 @@ class GatherRunner {
   }
 
   /**
-   * Throws an error if the original network request failed or wasn't found.
+   * Returns an error if the original network request failed or wasn't found.
    * @param {string} url The URL of the original requested page.
-   * @param {{online: boolean}} driver
    * @param {!Array<WebInspector.NetworkRequest>} networkRecords
+   * @return {?Error}
    */
-  static assertPageLoaded(url, driver, networkRecords) {
-    if (!driver.online) return;
-
+  static getPageLoadError(url, networkRecords) {
     const mainRecord = networkRecords.find(record => {
       // record.url is actual request url, so needs to be compared without any URL fragment.
       return URL.equalWithExcludedFragments(record.url, url);
@@ -162,7 +160,7 @@ class GatherRunner {
       log.error('GatherRunner', errorMessage, url);
       const error = new Error(`Unable to load page: ${errorMessage}`);
       error.code = 'PAGE_LOAD_ERROR';
-      throw error;
+      return error;
     }
   }
 
@@ -172,10 +170,15 @@ class GatherRunner {
    * @param {!GathererResults} gathererResults
    */
   static warnOnHeadless(userAgent, gathererResults) {
-    if (userAgent.includes('HeadlessChrome')) {
+    const chromeVersion = userAgent.split(/HeadlessChrome\/(.*) /)[1];
+    // Headless Chrome gained throttling support in Chrome 63.
+    // https://chromium.googlesource.com/chromium/src/+/8931a104b145ccf92390f6f48fba6553a1af92e4
+    const minVersion = '63.0.3239.0';
+    if (chromeVersion && chromeVersion < minVersion) {
       gathererResults.LighthouseRunWarnings.push('Your site\'s mobile performance may be ' +
           'worse than the numbers presented in this report. Lighthouse could not test on a ' +
-          'mobile connection because Headless Chrome does not support network throttling.');
+          'mobile connection because Headless Chrome does not support network throttling ' +
+          'prior to version ' + minVersion + '. The version used was ' + chromeVersion);
     }
   }
 
@@ -260,6 +263,7 @@ class GatherRunner {
     const passData = {};
 
     let pass = Promise.resolve();
+    let pageLoadError;
 
     if (config.recordTrace) {
       pass = pass.then(_ => {
@@ -280,8 +284,17 @@ class GatherRunner {
       log.log('status', status);
       const devtoolsLog = driver.endDevtoolsLog();
       const networkRecords = NetworkRecorder.recordsFromLogs(devtoolsLog);
-      GatherRunner.assertPageLoaded(options.url, driver, networkRecords);
       log.verbose('statusEnd', status);
+
+      pageLoadError = GatherRunner.getPageLoadError(options.url, networkRecords);
+      // If the driver was offline, a page load error is expected, so do not save it.
+      if (!driver.online) pageLoadError = null;
+
+      if (pageLoadError) {
+        gathererResults.LighthouseRunWarnings.push('Lighthouse was unable to reliably load the ' +
+          'page you requested. Make sure you are testing the correct URL and that the server is ' +
+          'properly responding to all requests.');
+      }
 
       // Expose devtoolsLog and networkRecords to gatherers
       passData.devtoolsLog = devtoolsLog;
@@ -295,7 +308,9 @@ class GatherRunner {
       const status = `Retrieving: ${gatherer.name}`;
       return chain.then(_ => {
         log.log('status', status);
-        const artifactPromise = Promise.resolve().then(_ => gatherer.afterPass(options, passData));
+        const artifactPromise = pageLoadError ?
+          Promise.reject(pageLoadError) :
+          Promise.resolve().then(_ => gatherer.afterPass(options, passData));
         gathererResults[gatherer.name].push(artifactPromise);
         return GatherRunner.recoverOrThrow(artifactPromise);
       }).then(_ => {
@@ -319,8 +334,10 @@ class GatherRunner {
     const artifacts = {};
 
     // Nest LighthouseRunWarnings, if any, so they will be collected into artifact.
-    gathererResults.LighthouseRunWarnings = [gathererResults.LighthouseRunWarnings];
+    const uniqueWarnings = Array.from(new Set(gathererResults.LighthouseRunWarnings));
+    gathererResults.LighthouseRunWarnings = [uniqueWarnings];
 
+    const pageLoadFailures = [];
     return Object.keys(gathererResults).reduce((chain, gathererName) => {
       return chain.then(_ => {
         const phaseResultsPromises = gathererResults[gathererName];
@@ -336,9 +353,16 @@ class GatherRunner {
           // To reach this point, all errors are non-fatal, so return err to
           // runner to handle turning it into an error audit.
           artifacts[gathererName] = err;
+          // Track page load errors separately, so we can fail loudly if needed.
+          if (err.code === 'PAGE_LOAD_ERROR') pageLoadFailures.push(err);
         });
       });
     }, Promise.resolve()).then(_ => {
+      // Fail the run if more than 50% of all artifacts failed due to page load failure.
+      if (pageLoadFailures.length > Object.keys(artifacts).length * .5) {
+        throw pageLoadFailures[0];
+      }
+
       return artifacts;
     });
   }
