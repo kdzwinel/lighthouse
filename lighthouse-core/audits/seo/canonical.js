@@ -22,48 +22,24 @@ function getCanonicalLinksFromHeader(headerValue) {
 }
 
 /**
- * @param {URL} canonicalURL
- * @param {URL} baseURL
- * @returns {boolean}
- */
-function isValidCanonicalLink(canonicalURL, baseURL) {
-  if (
-    canonicalURL.pathname === '/' &&
-    (baseURL.pathname === '/' || baseURL.origin === canonicalURL.origin)
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
-/**
+ * Returns true if given string is a valid absolute or relative URL
  * @param {string} url
  * @returns {boolean}
  */
-function isValidURL(url) {
+function isValidRelativeOrAbsoluteURL(url) {
   try {
     new URL(url, 'https://example.com/');
+    return true;
   } catch (e) {
     return false;
   }
-
-  return true;
 }
 
 /**
- * @param {string} url
- * @return {boolean}
- */
-function absoluteURL(url) {
-  return url.indexOf('http:') === 0 || url.indexOf('https:') === 0;
-}
-
-/**
- * @param {string} url
+ * @param {URL} url
  * @returns {string}
  */
-function getTLD(url) {
+function getDomain(url) {
   return url.hostname.split('.').slice(-2).join('.');
 }
 
@@ -79,7 +55,7 @@ class Canonical extends Audit {
       helpText: 'Canonical links suggest which URL to show in search results. ' +
         'Read more in [Use canonical URLs]' +
         '(https://support.google.com/webmasters/answer/139066).',
-      requiredArtifacts: ['Canonical'],
+      requiredArtifacts: ['Canonical', 'Hreflang'],
     };
   }
 
@@ -107,7 +83,7 @@ class Canonical extends Audit {
           };
         }
 
-        const invalidURL = canonicals.find(c => !isValidURL(c));
+        const invalidURL = canonicals.find(c => !isValidRelativeOrAbsoluteURL(c));
         if (invalidURL) {
           return {
             rawValue: false,
@@ -115,7 +91,7 @@ class Canonical extends Audit {
           };
         }
 
-        const relativeURL = canonicals.find(c => !absoluteURL(c));
+        const relativeURL = canonicals.find(c => !URL.isValid(c));
         if (relativeURL) {
           return {
             rawValue: false,
@@ -125,28 +101,44 @@ class Canonical extends Audit {
 
         canonicals = canonicals.map(c => new URL(c));
 
-        if (!canonicals.every(c => c.href === canonicals[0].href)) {
+        const conflictingURL = canonicals.find(c => c.href === canonicals[0].href);
+        if (conflictingURL) {
           return {
             rawValue: false,
-            debugString: 'multiple conflicting URLs',
+            debugString:
+              `multiple conflicting URLs (${conflictingURL.href}, ${canonicals[0].href})`,
           };
         }
 
         const canonicalURL = canonicals[0];
 
-        if (getTLD(canonicalURL) !== getTLD(baseURL)) {
+        if (getDomain(canonicalURL) !== getDomain(baseURL)) {
           return {
             rawValue: false,
-            debugString: 'points to a different TLD',
+            debugString: `points to a different domain (${canonicalURL})`,
           };
         }
 
-        if (!isValidCanonicalLink(canonicalURL, baseURL)) {
+        // it's a common mistake to point canonical from all pages of the website to its root
+        if (canonicalURL.origin === baseURL.origin &&
+          canonicalURL.pathname === '/' && baseURL.pathname !== '/') {
           return {
             rawValue: false,
-            debugString: 'invalid canonical??',
+            debugString: 'points to a root of the same origin',
           };
         }
+
+        // const hreflangURLs = artifacts.Hreflang.map(({href}) => URL.isValid(href) && new URL(href)
+
+        // const baseURLIsHreflang = true;
+        // const canonicalURLIsHreflang = true;
+
+        // if (baseURLIsHreflang && canonicalURLIsHreflang && baseURL.href !== canonicalURL.href) {
+        //   return {
+        //     rawValue: false,
+        //     debugString: `points to another hreflang location (${})`,
+        //   };
+        // }
 
         return {
           rawValue: true,
