@@ -16,9 +16,18 @@ const LINK_HEADER = 'link';
  */
 function getCanonicalLinksFromHeader(headerValue) {
   const linkHeader = LinkHeader.parse(headerValue);
-  const canonical = linkHeader.get('rel', 'canonical');
 
-  return canonical.map(c => c.uri);
+  return linkHeader.get('rel', 'canonical').map(c => c.uri);
+}
+
+/**
+ * @param {string} headerValue
+ * @returns {Array<string>}
+ */
+function getHreflangsFromHeader(headerValue) {
+  const linkHeader = LinkHeader.parse(headerValue);
+
+  return linkHeader.get('rel', 'alternate').map(h => h.uri);
 }
 
 /**
@@ -36,10 +45,12 @@ function isValidRelativeOrAbsoluteURL(url) {
 }
 
 /**
+ * Returns a primary domain for provided URL (e.g. http://www.example.com -> example.com).
+ * Note that it does not take second-level domains into account (.co.uk).
  * @param {URL} url
  * @returns {string}
  */
-function getDomain(url) {
+function getPrimaryDomain(url) {
   return url.hostname.split('.').slice(-2).join('.');
 }
 
@@ -70,12 +81,22 @@ class Canonical extends Audit {
       .then(mainResource => {
         const baseURL = new URL(mainResource.url);
         let canonicals = [];
+        let hreflangs = [];
 
         mainResource.responseHeaders
           .filter(h => h.name.toLowerCase() === LINK_HEADER)
-          .forEach(h => canonicals = canonicals.concat(getCanonicalLinksFromHeader(h.value)));
+          .forEach(h => {
+            canonicals = canonicals.concat(getCanonicalLinksFromHeader(h.value));
+            hreflangs = hreflangs.concat(getHreflangsFromHeader(h.value));
+          });
 
         canonicals = canonicals.concat(artifacts.Canonical);
+
+        artifacts.Hreflang.forEach(({href}) => hreflangs.push(href));
+
+        hreflangs = hreflangs
+          .filter(href => isValidRelativeOrAbsoluteURL(href))
+          .map(href => (new URL(href, baseURL)).href); // normalize URLs
 
         if (canonicals.length === 0) {
           return {
@@ -83,43 +104,51 @@ class Canonical extends Audit {
           };
         }
 
-        const invalidURL = canonicals.find(c => !isValidRelativeOrAbsoluteURL(c));
-        if (invalidURL) {
-          return {
-            rawValue: false,
-            debugString: `invalid URL (${invalidURL})`,
-          };
-        }
-
-        const relativeURL = canonicals.find(c => !URL.isValid(c));
-        if (relativeURL) {
-          return {
-            rawValue: false,
-            debugString: `relative URL (${relativeURL})`,
-          };
-        }
-
-        canonicals = canonicals.map(c => new URL(c));
-
-        const conflictingURL = canonicals.find(c => c.href === canonicals[0].href);
-        if (conflictingURL) {
+        if (canonicals.length > 1) {
           return {
             rawValue: false,
             debugString:
-              `multiple conflicting URLs (${conflictingURL.href}, ${canonicals[0].href})`,
+              `multiple URLs (${canonicals.join(', ')})`,
           };
         }
 
-        const canonicalURL = canonicals[0];
+        const canonical = canonicals[0];
 
-        if (getDomain(canonicalURL) !== getDomain(baseURL)) {
+        if (!isValidRelativeOrAbsoluteURL(canonical)) {
+          return {
+            rawValue: false,
+            debugString: `invalid URL (${canonical})`,
+          };
+        }
+
+        if (!URL.isValid(canonical)) {
+          return {
+            rawValue: false,
+            debugString: `relative URL (${canonical})`,
+          };
+        }
+
+        const canonicalURL = new URL(canonical);
+
+        // cross-language or cross-country canonicals are a common issue
+        if (hreflangs.includes(baseURL.href) && hreflangs.includes(canonicalURL.href) &&
+          baseURL.href !== canonicalURL.href) {
+          return {
+            rawValue: false,
+            debugString: `points to another hreflang location (${baseURL.href})`,
+          };
+        }
+
+        // bing and yahoo don't allow canonical URLs pointing to different domains, it's also
+        // a common mistake to publish a page with canonical pointing to e.g. a test domain or localhost
+        if (getPrimaryDomain(canonicalURL) !== getPrimaryDomain(baseURL)) {
           return {
             rawValue: false,
             debugString: `points to a different domain (${canonicalURL})`,
           };
         }
 
-        // it's a common mistake to point canonical from all pages of the website to its root
+        // another common mistake is to have canonical pointing from all pages of the website to its root
         if (canonicalURL.origin === baseURL.origin &&
           canonicalURL.pathname === '/' && baseURL.pathname !== '/') {
           return {
@@ -127,18 +156,6 @@ class Canonical extends Audit {
             debugString: 'points to a root of the same origin',
           };
         }
-
-        // const hreflangURLs = artifacts.Hreflang.map(({href}) => URL.isValid(href) && new URL(href)
-
-        // const baseURLIsHreflang = true;
-        // const canonicalURLIsHreflang = true;
-
-        // if (baseURLIsHreflang && canonicalURLIsHreflang && baseURL.href !== canonicalURL.href) {
-        //   return {
-        //     rawValue: false,
-        //     debugString: `points to another hreflang location (${})`,
-        //   };
-        // }
 
         return {
           rawValue: true,

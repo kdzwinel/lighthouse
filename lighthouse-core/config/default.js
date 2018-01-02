@@ -42,6 +42,7 @@ module.exports = {
       'seo/crawlable-links',
       'seo/meta-robots',
       'seo/hreflang',
+      'seo/canonical',
     ],
   },
   {
@@ -171,6 +172,7 @@ module.exports = {
     'seo/link-text',
     'seo/is-crawlable',
     'seo/hreflang',
+    'seo/canonical',
   ],
 
   groups: {
@@ -379,6 +381,7 @@ module.exports = {
         {id: 'link-text', weight: 1, group: 'seo-content'},
         {id: 'is-crawlable', weight: 1, group: 'seo-crawl'},
         {id: 'hreflang', weight: 1, group: 'seo-content'},
+        {id: 'canonical', weight: 1, group: 'seo-content'},
         {id: 'font-size', weight: 1, group: 'seo-mobile'},
       ],
     },
