@@ -118,7 +118,7 @@ module.exports = [
       },
       'canonical': {
         score: false,
-        debugString: 'Multiple URLs (https://example.com, https://example.com/)',
+        displayValue: 'multiple URLs (https://example.com, https://example.com/)',
       },
     },
   },
