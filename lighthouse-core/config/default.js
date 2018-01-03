@@ -244,7 +244,7 @@ module.exports = {
       description: 'To appear in search results, crawlers need access to your app.',
     },
     'manual-seo-checks': {
-      title: 'Manual SEO Validation',
+      title: 'Additional items to manually check',
       description: 'Run these additional validators on your site to check additional SEO best practices.',
     },
   },
