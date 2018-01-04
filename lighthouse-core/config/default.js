@@ -173,12 +173,14 @@ module.exports = {
     'seo/is-crawlable',
     'seo/hreflang',
     'seo/canonical',
+    'seo/manual/mobile-friendly',
+    'seo/manual/structured-data',
   ],
 
   groups: {
     'perf-metric': {
       title: 'Metrics',
-      description: 'These metrics encapsulate your app\'s performance across a number of dimensions.',
+      description: 'These metrics encapsulate your web app\'s performance across a number of dimensions.',
     },
     'perf-hint': {
       title: 'Opportunities',
@@ -243,11 +245,15 @@ module.exports = {
       title: 'Crawling and Indexing',
       description: 'To appear in search results, crawlers need access to your app.',
     },
+    'manual-seo-checks': {
+      title: 'Additional items to manually check',
+      description: 'Run these additional validators on your site to check additional SEO best practices.',
+    },
   },
   categories: {
     'performance': {
       name: 'Performance',
-      description: 'These encapsulate your app\'s current performance and opportunities to improve it.',
+      description: 'These encapsulate your web app\'s current performance and opportunities to improve it.',
       audits: [
         {id: 'first-meaningful-paint', weight: 5, group: 'perf-metric'},
         {id: 'first-interactive', weight: 5, group: 'perf-metric'},
@@ -297,7 +303,7 @@ module.exports = {
     },
     'accessibility': {
       name: 'Accessibility',
-      description: 'These checks highlight opportunities to [improve the accessibility of your app](https://developers.google.com/web/fundamentals/accessibility). Only a subset of accessibility issues can be automatically detected so manual testing is also encouraged.',
+      description: 'These checks highlight opportunities to [improve the accessibility of your web app](https://developers.google.com/web/fundamentals/accessibility). Only a subset of accessibility issues can be automatically detected so manual testing is also encouraged.',
       audits: [
         {id: 'accesskeys', weight: 1, group: 'a11y-correct-attributes'},
         {id: 'aria-allowed-attr', weight: 3, group: 'a11y-aria'},
@@ -383,6 +389,8 @@ module.exports = {
         {id: 'hreflang', weight: 1, group: 'seo-content'},
         {id: 'canonical', weight: 1, group: 'seo-content'},
         {id: 'font-size', weight: 1, group: 'seo-mobile'},
+        {id: 'mobile-friendly', weight: 0, group: 'manual-seo-checks'},
+        {id: 'structured-data', weight: 0, group: 'manual-seo-checks'},
       ],
     },
   },
