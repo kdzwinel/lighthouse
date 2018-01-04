@@ -101,6 +101,7 @@ class Canonical extends Audit {
         if (canonicals.length === 0) {
           return {
             rawValue: true,
+            notApplicable: true,
           };
         }
 
