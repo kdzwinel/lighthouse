@@ -190,7 +190,20 @@ class FontSize extends Gatherer {
           .map(info =>
             getFontSizeSourceRule(options.driver, info.node)
               .then(sourceRule => {
-                info.cssRule = sourceRule;
+                if (sourceRule) {
+                  info.cssRule = {
+                    type: sourceRule.type,
+                    range: sourceRule.range,
+                    styleSheetId: sourceRule.styleSheetId,
+                  };
+
+                  if (sourceRule.parentRule) {
+                    info.cssRule.parentRule = {
+                      origin: sourceRule.parentRule.origin,
+                      selectors: sourceRule.parentRule.selectors,
+                    };
+                  }
+                }
                 return info;
               })
           )
