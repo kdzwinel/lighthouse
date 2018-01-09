@@ -42,7 +42,7 @@ module.exports = {
       'seo/crawlable-links',
       'seo/meta-robots',
       'seo/hreflang',
-      'seo/external-content',
+      'seo/embedded-content',
     ],
   },
   {

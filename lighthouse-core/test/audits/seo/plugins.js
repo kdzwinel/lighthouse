@@ -12,7 +12,7 @@ const assert = require('assert');
 
 describe('SEO: Avoids plugins', () => {
   it('fails when page contains java, silverlight or flash content', () => {
-    const externalContentValues = [
+    const embeddedContentValues = [
       [{
         tagName: 'APPLET',
         params: [],
@@ -57,9 +57,9 @@ describe('SEO: Avoids plugins', () => {
       }],
     ];
 
-    externalContentValues.forEach(externalContent => {
+    embeddedContentValues.forEach(embeddedContent => {
       const artifacts = {
-        ExternalContent: externalContent,
+        EmbeddedContent: embeddedContent,
       };
 
       const auditResult = PluginsAudit.audit(artifacts);
@@ -70,7 +70,7 @@ describe('SEO: Avoids plugins', () => {
 
   it('returns multiple results when there are multiple failing items', () => {
     const artifacts = {
-      ExternalContent: [
+      EmbeddedContent: [
         {
           tagName: 'EMBED',
           type: 'application/x-java-applet;jpi-version=1.4',
@@ -95,7 +95,7 @@ describe('SEO: Avoids plugins', () => {
 
   it('succeeds when there is no external content found on page', () => {
     const artifacts = {
-      ExternalContent: [],
+      EmbeddedContent: [],
     };
 
     const auditResult = PluginsAudit.audit(artifacts);
@@ -104,7 +104,7 @@ describe('SEO: Avoids plugins', () => {
 
   it('succeeds when all external content is valid', () => {
     const artifacts = {
-      ExternalContent: [
+      EmbeddedContent: [
         {
           tagName: 'OBJECT',
           type: 'image/svg+xml',

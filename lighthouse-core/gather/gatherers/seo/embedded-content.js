@@ -8,10 +8,10 @@
 const Gatherer = require('../gatherer');
 const DOMHelpers = require('../../../lib/dom-helpers.js');
 
-class ExternalContent extends Gatherer {
+class EmbeddedContent extends Gatherer {
   /**
    * @param {{driver: !Driver}} options Run options
-   * @return {!Promise<Array<{tagName: string, type: ?string, src: ?string, data: ?string, code: ?string, params: Array<{name: ?string, value: ?string}>}>>} All objects, embeds and applets with list of relevant attributes and child properties
+   * @return {!Promise<Array<{tagName: string, type: ?string, src: ?string, data: ?string, code: ?string, params: Array<{name: string, value: string}>}>>} All <object>s, <embed>s and <applet>s with list of relevant attributes and child properties
    */
   afterPass(options) {
     const expression = `(function() {
@@ -28,8 +28,8 @@ class ExternalContent extends Gatherer {
           params: Array.from(node.children)
             .filter(el => el.tagName === 'PARAM')
             .map(el => ({
-              name: el.getAttribute('name'),
-              value: el.getAttribute('value'),
+              name: el.getAttribute('name') || '',
+              value: el.getAttribute('value') || '',
             })),
         }));
     })()`;
@@ -38,4 +38,4 @@ class ExternalContent extends Gatherer {
   }
 }
 
-module.exports = ExternalContent;
+module.exports = EmbeddedContent;

@@ -12,10 +12,10 @@ const JAVA_APPLET_TYPE = 'application/x-java-applet';
 const JAVA_BEAN_TYPE = 'application/x-java-bean';
 const TYPE_BLOCKLIST = new Set([
   'application/x-shockwave-flash',
-  // https://docs.oracle.com/cd/E19683-01/816-0378/using_tags/index.html
+  // See https://docs.oracle.com/cd/E19683-01/816-0378/using_tags/index.html
   JAVA_APPLET_TYPE,
   JAVA_BEAN_TYPE,
-  // https://msdn.microsoft.com/es-es/library/cc265156(v=vs.95).aspx
+  // See https://msdn.microsoft.com/es-es/library/cc265156(v=vs.95).aspx
   'application/x-silverlight',
   'application/x-silverlight-2',
 ]);
@@ -50,6 +50,7 @@ function isPluginType(type) {
  */
 function isPluginURL(url) {
   try {
+    // in order to support relative URLs we need to provied a base URL
     const filePath = new URL(url, 'http://example.com').pathname;
     const parts = filePath.split('.');
 
@@ -68,10 +69,10 @@ class Plugins extends Audit {
       category: 'Content Best Practices',
       name: 'plugins',
       description: 'Document avoids plugins.',
-      failureDescription: 'Document doesn\'t avoid plugins',
+      failureDescription: 'Document uses plugins',
       helpText: 'Some types of media or content are not playable on mobile devices. ' +
       '[Learn more](https://developers.google.com/speed/docs/insights/AvoidPlugins).',
-      requiredArtifacts: ['ExternalContent'],
+      requiredArtifacts: ['EmbeddedContent'],
     };
   }
 
@@ -80,7 +81,7 @@ class Plugins extends Audit {
    * @return {!AuditResult}
    */
   static audit(artifacts) {
-    const plugins = artifacts.ExternalContent
+    const plugins = artifacts.EmbeddedContent
       .filter(item => {
         if (item.tagName === 'APPLET') {
           return true;
