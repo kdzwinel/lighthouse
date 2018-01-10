@@ -66,7 +66,6 @@ class Plugins extends Audit {
    */
   static get meta() {
     return {
-      category: 'Content Best Practices',
       name: 'plugins',
       description: 'Document avoids plugins.',
       failureDescription: 'Document uses plugins',
