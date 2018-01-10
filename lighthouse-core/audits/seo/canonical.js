@@ -108,7 +108,7 @@ class Canonical extends Audit {
         if (canonicals.length > 1) {
           return {
             rawValue: false,
-            displayValue: `multiple URLs (${canonicals.join(', ')})`,
+            debugString: `Multiple URLs (${canonicals.join(', ')})`,
           };
         }
 
@@ -117,14 +117,14 @@ class Canonical extends Audit {
         if (!isValidRelativeOrAbsoluteURL(canonical)) {
           return {
             rawValue: false,
-            displayValue: `invalid URL (${canonical})`,
+            debugString: `Invalid URL (${canonical})`,
           };
         }
 
         if (!URL.isValid(canonical)) {
           return {
             rawValue: false,
-            displayValue: `relative URL (${canonical})`,
+            debugString: `Relative URL (${canonical})`,
           };
         }
 
@@ -135,7 +135,7 @@ class Canonical extends Audit {
           baseURL.href !== canonicalURL.href) {
           return {
             rawValue: false,
-            displayValue: `points to another hreflang location (${baseURL.href})`,
+            debugString: `Points to another hreflang location (${baseURL.href})`,
           };
         }
 
@@ -144,7 +144,7 @@ class Canonical extends Audit {
         if (getPrimaryDomain(canonicalURL) !== getPrimaryDomain(baseURL)) {
           return {
             rawValue: false,
-            displayValue: `points to a different domain (${canonicalURL})`,
+            debugString: `Points to a different domain (${canonicalURL})`,
           };
         }
 
@@ -153,7 +153,7 @@ class Canonical extends Audit {
           canonicalURL.pathname === '/' && baseURL.pathname !== '/') {
           return {
             rawValue: false,
-            displayValue: 'points to a root of the same origin',
+            debugString: 'Points to a root of the same origin',
           };
         }
 

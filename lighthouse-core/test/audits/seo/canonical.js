@@ -45,7 +45,7 @@ describe('SEO: Document has valid canonical link', () => {
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {
       assert.equal(auditResult.rawValue, false);
-      assert.ok(auditResult.displayValue.includes('multiple'));
+      assert.ok(auditResult.debugString.includes('multiple'));
     });
   });
 
@@ -63,7 +63,7 @@ describe('SEO: Document has valid canonical link', () => {
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {
       assert.equal(auditResult.rawValue, false);
-      assert.ok(auditResult.displayValue.includes('invalid'));
+      assert.ok(auditResult.debugString.includes('invalid'));
     });
   });
 
@@ -81,7 +81,7 @@ describe('SEO: Document has valid canonical link', () => {
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {
       assert.equal(auditResult.rawValue, false);
-      assert.ok(auditResult.displayValue.includes('relative'));
+      assert.ok(auditResult.debugString.includes('relative'));
     });
   });
 
@@ -102,7 +102,7 @@ describe('SEO: Document has valid canonical link', () => {
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {
       assert.equal(auditResult.rawValue, false);
-      assert.ok(auditResult.displayValue.includes('hreflang'));
+      assert.ok(auditResult.debugString.includes('hreflang'));
     });
   });
 
@@ -120,7 +120,7 @@ describe('SEO: Document has valid canonical link', () => {
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {
       assert.equal(auditResult.rawValue, false);
-      assert.ok(auditResult.displayValue.includes('domain'));
+      assert.ok(auditResult.debugString.includes('domain'));
     });
   });
 
@@ -138,7 +138,7 @@ describe('SEO: Document has valid canonical link', () => {
 
     return CanonicalAudit.audit(artifacts).then(auditResult => {
       assert.equal(auditResult.rawValue, false);
-      assert.ok(auditResult.displayValue.includes('root'));
+      assert.ok(auditResult.debugString.includes('root'));
     });
   });
 
