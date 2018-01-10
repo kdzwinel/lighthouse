@@ -60,6 +60,9 @@ module.exports = [
       'hreflang': {
         score: true,
       },
+      'plugins': {
+        score: true,
+      },
       'canonical': {
         score: true,
       },
@@ -116,9 +119,17 @@ module.exports = [
           },
         },
       },
+      'plugins': {
+        score: false,
+        details: {
+          items: {
+            length: 3,
+          },
+        },
+      },
       'canonical': {
         score: false,
-        displayValue: 'multiple URLs (https://example.com, https://example.com/)',
+        debugString: 'Multiple URLs (https://example.com, https://example.com/)',
       },
     },
   },

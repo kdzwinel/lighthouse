@@ -119,26 +119,6 @@ describe('Config', () => {
     assert.equal(configJSON.passes[0].gatherers.length, 2);
   });
 
-  it('contains new copies of auditResults', () => {
-    const configJSON = origConfig;
-    configJSON.auditResults = [{
-      value: 1,
-      rawValue: 1.0,
-      name: 'Test Audit',
-      details: {
-        items: {
-          a: 1,
-        },
-      },
-    }];
-
-    const config = new Config(configJSON);
-    assert.notEqual(config, configJSON, 'Objects are strictly different');
-    assert.ok(config.auditResults, 'Audits array exists');
-    assert.notEqual(config.auditResults, configJSON.auditResults, 'Audits not same object');
-    assert.deepStrictEqual(config.auditResults, configJSON.auditResults, 'Audits match');
-  });
-
   it('expands audits', () => {
     const config = new Config({
       audits: ['user-timings'],
@@ -458,7 +438,7 @@ describe('Config', () => {
     const auditNames = new Set(config.audits.map(audit => audit.meta.name));
     assert.ok(config, 'failed to generate config');
     assert.ok(auditNames.has('custom-audit'), 'did not include custom audit');
-    assert.ok(auditNames.has('no-old-flexbox'), 'did not include full audits');
+    assert.ok(auditNames.has('unused-css-rules'), 'did not include full audits');
     assert.ok(auditNames.has('first-meaningful-paint'), 'did not include default audits');
   });
 

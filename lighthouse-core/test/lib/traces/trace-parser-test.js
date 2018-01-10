@@ -29,18 +29,21 @@ describe('traceParser parser', () => {
       const readTrace = JSON.parse(fs.readFileSync(filename));
 
       assert.equal(streamedTrace.traceEvents.length, readTrace.traceEvents.length);
-      assert.deepStrictEqual(streamedTrace.traceEvents, readTrace.traceEvents);
+      streamedTrace.traceEvents.forEach((evt, i) => {
+        assert.deepStrictEqual(evt, readTrace.traceEvents[i]);
+      });
 
       done();
     });
-  });
+  }).timeout(10000);
 
 
   it('parses a trace > 256mb (slow)', () => {
     const parser = new TraceParser();
     let bytesRead = 0;
     // FYI: this trace doesn't have a traceEvents property ;)
-    const events = require('../../fixtures/traces/devtools-homepage-w-screenshots-trace.json');
+    const filename = '/../../fixtures/traces/devtools-homepage-w-screenshots-trace.json';
+    const events = JSON.parse(fs.readFileSync(__dirname + filename));
 
     /**
      * This function will synthesize a trace that's over 256 MB. To do that, we'll take an existing
@@ -76,7 +79,7 @@ describe('traceParser parser', () => {
     const streamedTrace = parser.getTrace();
 
     assert.ok(bytesRead > 256 * 1024 * 1024, `${bytesRead} bytes read`);
-    assert.strictEqual(bytesRead, 270179102, `${bytesRead} bytes read`);
+    assert.strictEqual(bytesRead, 270128965, `${bytesRead} bytes read`);
 
     // if > 256 MB are read we should have ~480,000 trace events
     assert.ok(streamedTrace.traceEvents.length > 400 * 1000, 'not >400,000 trace events');
@@ -86,5 +89,5 @@ describe('traceParser parser', () => {
     assert.deepStrictEqual(
         streamedTrace.traceEvents[events.length - 2],
         events[0]);
-  });
+  }).timeout(40 * 1000);
 });

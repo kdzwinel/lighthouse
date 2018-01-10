@@ -17,6 +17,14 @@ const dbwResults = require('../fixtures/dbw_tester-perf-results.json');
 const Audit = require('../../audits/audit.js');
 const fullTraceObj = require('../fixtures/traces/progressive-app-m60.json');
 
+// deepStrictEqual can hang on a full trace, we assert trace same-ness like so
+function assertTraceEventsEqual(traceEventsA, traceEventsB) {
+  assert.equal(traceEventsA.length, traceEventsB.length);
+  traceEventsA.forEach((evt, i) => {
+    assert.deepStrictEqual(evt, traceEventsB[i]);
+  });
+}
+
 /* eslint-env mocha */
 describe('asset-saver helper', () => {
   it('generates HTML', () => {
@@ -54,7 +62,8 @@ describe('asset-saver helper', () => {
     it('trace file saved to disk with only trace events', () => {
       const traceFilename = 'the_file-0.trace.json';
       const traceFileContents = fs.readFileSync(traceFilename, 'utf8');
-      assert.deepStrictEqual(JSON.parse(traceFileContents), {traceEvents});
+      const traceEventsFromDisk = JSON.parse(traceFileContents).traceEvents;
+      assertTraceEventsEqual(traceEventsFromDisk, traceEvents);
       fs.unlinkSync(traceFilename);
     });
 
@@ -112,9 +121,10 @@ describe('asset-saver helper', () => {
       return assetSaver.saveTrace(fullTraceObj, traceFilename)
         .then(_ => {
           const traceFileContents = fs.readFileSync(traceFilename, 'utf8');
-          assert.deepStrictEqual(JSON.parse(traceFileContents), fullTraceObj);
+          const traceEventsFromDisk = JSON.parse(traceFileContents).traceEvents;
+          assertTraceEventsEqual(traceEventsFromDisk, fullTraceObj.traceEvents);
         });
-    });
+    }).timeout(10000);
 
     it('correctly saves a trace with no trace events to disk', () => {
       const trace = {
@@ -152,7 +162,8 @@ describe('asset-saver helper', () => {
       return assetSaver.saveTrace(trace, traceFilename)
         .then(_ => {
           const traceFileContents = fs.readFileSync(traceFilename, 'utf8');
-          assert.deepStrictEqual(JSON.parse(traceFileContents), trace);
+          const traceEventsFromDisk = JSON.parse(traceFileContents).traceEvents;
+          assertTraceEventsEqual(traceEventsFromDisk, trace.traceEvents);
         });
     });
 
@@ -175,6 +186,6 @@ describe('asset-saver helper', () => {
           const fileStats = fs.lstatSync(traceFilename);
           assert.ok(fileStats.size > Math.pow(2, 28));
         });
-    });
+    }).timeout(40 * 1000);
   });
 });
