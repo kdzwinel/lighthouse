@@ -21,27 +21,46 @@ class AccessibilityCategoryRenderer extends CategoryRenderer {
 
     const manualAudits = category.audits.filter(audit => audit.result.manual);
     const nonManualAudits = category.audits.filter(audit => !manualAudits.includes(audit));
+    const nonManualGroupedAudits = nonManualAudits.filter(audit => audit.group !== undefined);
+    const nonManualnonGroupedAudits =
+      nonManualAudits.filter(audit => !nonManualGroupedAudits.includes(audit));
     const auditsGroupedByGroup = /** @type {!Object<string,
         {passed: !Array<!ReportRenderer.AuditJSON>,
         failed: !Array<!ReportRenderer.AuditJSON>,
         notApplicable: !Array<!ReportRenderer.AuditJSON>}>} */ ({});
-    nonManualAudits.forEach(audit => {
-      const groupId = audit.group;
-      const groups = auditsGroupedByGroup[groupId] || {passed: [], failed: [], notApplicable: []};
+    nonManualGroupedAudits
+      .forEach(audit => {
+        const groupId = audit.group;
+        const groups = auditsGroupedByGroup[groupId] || {passed: [], failed: [], notApplicable: []};
 
-      if (audit.result.notApplicable) {
-        groups.notApplicable.push(audit);
-      } else if (audit.score === 100) {
-        groups.passed.push(audit);
-      } else {
-        groups.failed.push(audit);
-      }
+        if (audit.result.notApplicable) {
+          groups.notApplicable.push(audit);
+        } else if (audit.score === 100) {
+          groups.passed.push(audit);
+        } else {
+          groups.failed.push(audit);
+        }
 
-      auditsGroupedByGroup[groupId] = groups;
-    });
+        auditsGroupedByGroup[groupId] = groups;
+      });
+
+    const nonGroupednonApplicableAudits = nonManualnonGroupedAudits
+      .filter(audit => audit.result.notApplicable);
+    const nonGroupedPassedAudits = nonManualnonGroupedAudits
+      .filter(audit => !nonGroupednonApplicableAudits.includes(audit) && audit.score === 100 && !audit.result.debugString);
+    const nonGroupedFailedAudits = nonManualnonGroupedAudits
+      .filter(audit => !nonGroupedPassedAudits.includes(audit));
+
+    nonGroupedFailedAudits.forEach(audit => element.appendChild(this._renderAudit(audit)));
 
     const passedElements = /** @type {!Array<!Element>} */ ([]);
     const notApplicableElements = /** @type {!Array<!Element>} */ ([]);
+
+    nonGroupedPassedAudits
+      .forEach(audit => passedElements.push(this._renderAudit(audit)));
+    nonGroupednonApplicableAudits
+      .forEach(audit => notApplicableElements.push(this._renderAudit(audit)));
+
     Object.keys(auditsGroupedByGroup).forEach(groupId => {
       const group = groupDefinitions[groupId];
       const groups = auditsGroupedByGroup[groupId];

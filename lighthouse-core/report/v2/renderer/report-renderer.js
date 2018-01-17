@@ -162,7 +162,7 @@ class ReportRenderer {
         scoreHeader.appendChild(categoryRenderer.renderScoreGauge(category));
       }
 
-      let renderer = categoryRenderer;
+      let renderer = a11yCategoryRenderer;
 
       switch (category.id) {
         case 'performance':
