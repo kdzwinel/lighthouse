@@ -153,8 +153,6 @@ class ReportRenderer {
     categoryRenderer.setTemplateContext(this._templateContext);
     const perfCategoryRenderer = new PerformanceCategoryRenderer(this._dom, detailsRenderer);
     perfCategoryRenderer.setTemplateContext(this._templateContext);
-    const a11yCategoryRenderer = new AccessibilityCategoryRenderer(this._dom, detailsRenderer);
-    a11yCategoryRenderer.setTemplateContext(this._templateContext);
 
     const categories = reportSection.appendChild(this._dom.createElement('div', 'lh-categories'));
     for (const category of report.reportCategories) {
@@ -162,13 +160,10 @@ class ReportRenderer {
         scoreHeader.appendChild(categoryRenderer.renderScoreGauge(category));
       }
 
-      let renderer = a11yCategoryRenderer;
+      let renderer = categoryRenderer;
 
-      switch (category.id) {
-        case 'performance':
-          renderer = perfCategoryRenderer; break;
-        case 'accessibility':
-          renderer = a11yCategoryRenderer; break;
+      if (category.id === 'performance') {
+        renderer = perfCategoryRenderer;
       }
 
       categories.appendChild(renderer.render(category, report.reportGroups));
