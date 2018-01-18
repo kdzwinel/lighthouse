@@ -53,24 +53,30 @@ class AccessibilityCategoryRenderer extends CategoryRenderer {
       }
     });
 
+    const failedElements = /** @type {!Array<!Element>} */ ([]);
     const passedElements = /** @type {!Array<!Element>} */ ([]);
     const notApplicableElements = /** @type {!Array<!Element>} */ ([]);
 
-    auditsNonGrouped.failed
-      .forEach(audit => element.appendChild(this._renderAudit(audit)));
-    auditsNonGrouped.passed
+    auditsUngrouped.failed
+      .forEach(audit => failedElements.push(this._renderAudit(audit)));
+    auditsUngrouped.passed
       .forEach(audit => passedElements.push(this._renderAudit(audit)));
-    auditsNonGrouped.notApplicable
+    auditsUngrouped.notApplicable
       .forEach(audit => notApplicableElements.push(this._renderAudit(audit)));
+
+    let failedAuditsCount = failedElements.length;
 
     Object.keys(auditsGroupedByGroup).forEach(groupId => {
       const group = groupDefinitions[groupId];
       const groups = auditsGroupedByGroup[groupId];
+
+      failedAuditsCount += groups.failed.length;
+
       if (groups.failed.length) {
-        const auditGroupElem = this._renderAuditGroup(group, {expandable: false});
+        const auditGroupElem = this._renderAuditGroup(group, {expandable: true});
         groups.failed.forEach(item => auditGroupElem.appendChild(this._renderAudit(item)));
         auditGroupElem.open = true;
-        element.appendChild(auditGroupElem);
+        failedElements.push(auditGroupElem);
       }
 
       if (groups.passed.length) {
@@ -85,6 +91,15 @@ class AccessibilityCategoryRenderer extends CategoryRenderer {
         notApplicableElements.push(auditGroupElem);
       }
     });
+
+    if (failedElements.length) {
+      const nonPassedElem = this._renderAuditGroup({
+        title: `${failedAuditsCount} Failed Audits`,
+      }, {expandable: true});
+      nonPassedElem.classList.add('lh-failed-audits');
+      failedElements.forEach(element => nonPassedElem.appendChild(element));
+      element.appendChild(nonPassedElem);
+    }
 
     if (passedElements.length) {
       const passedElem = this._renderPassedAuditsSection(passedElements);
