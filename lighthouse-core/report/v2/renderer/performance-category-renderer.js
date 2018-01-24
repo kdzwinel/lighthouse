@@ -5,10 +5,9 @@
  */
 'use strict';
 
-/* globals self, Util */
+/* globals self, Util, CategoryRenderer */
 
 class PerformanceCategoryRenderer extends CategoryRenderer {
-
   /**
    * @param {!ReportRenderer.AuditJSON} audit
    * @param {number} scale
@@ -57,7 +56,7 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
     ].join(' '));
 
     const summary = this._dom.createChildOf(element, 'summary', 'lh-perf-hint__summary ' +
-        'lh-expandable-details__summary');
+      'lh-expandable-details__summary');
     const titleEl = this._dom.createChildOf(summary, 'div', 'lh-perf-hint__title');
     titleEl.textContent = audit.result.description;
 

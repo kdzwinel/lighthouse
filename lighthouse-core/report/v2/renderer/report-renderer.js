@@ -12,7 +12,7 @@
  * Dummy text for ensuring report robustness: </script> pre$`post %%LIGHTHOUSE_JSON%%
  */
 
-/* globals self, Util */
+/* globals self, Util, DetailsRenderer, CategoryRenderer, PerformanceCategoryRenderer */
 
 class ReportRenderer {
   /**
