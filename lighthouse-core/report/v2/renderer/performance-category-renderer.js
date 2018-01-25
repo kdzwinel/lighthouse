@@ -45,7 +45,7 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
    * @return {!Element}
    */
   _renderPerfHintAudit(audit, scale) {
-    const extendedInfo = /** @type {!CategoryRenderer.PerfHintExtendedInfo}
+    const extendedInfo = /** @type {!PerformanceCategoryRenderer.PerfHintExtendedInfo}
         */ (audit.result.extendedInfo);
     const tooltipAttrs = {title: audit.result.displayValue};
 
