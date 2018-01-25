@@ -13,11 +13,11 @@ class CategoryRenderer {
    * @param {!DetailsRenderer} detailsRenderer
    */
   constructor(dom, detailsRenderer) {
-    /** @private {!DOM} */
+    /** @protected {!DOM} */
     this._dom = dom;
-    /** @private {!DetailsRenderer} */
+    /** @protected {!DetailsRenderer} */
     this._detailsRenderer = detailsRenderer;
-    /** @private {!Document|!Element} */
+    /** @protected {!Document|!Element} */
     this._templateContext = this._dom.document();
 
     this._detailsRenderer.setTemplateContext(this._templateContext);
@@ -293,13 +293,14 @@ class CategoryRenderer {
     const passedElements = /** @type {!Array<!Element>} */ ([]);
     const notApplicableElements = /** @type {!Array<!Element>} */ ([]);
 
-    auditsUngrouped.failed
-      .forEach(audit => failedElements.push(this._renderAudit(audit)));
-    auditsUngrouped.passed
-      .forEach(audit => passedElements.push(this._renderAudit(audit)));
-    auditsUngrouped.notApplicable
-      .forEach(audit => notApplicableElements.push(this._renderAudit(audit)));
+    auditsUngrouped.failed.forEach((/** @type {!ReportRenderer.AuditJSON} */ audit) =>
+      failedElements.push(this._renderAudit(audit)));
+    auditsUngrouped.passed.forEach((/** @type {!ReportRenderer.AuditJSON} */ audit) =>
+      passedElements.push(this._renderAudit(audit)));
+    auditsUngrouped.notApplicable.forEach((/** @type {!ReportRenderer.AuditJSON} */ audit) =>
+      notApplicableElements.push(this._renderAudit(audit)));
 
+    /** @type {number} */
     let failedAuditsCount = failedElements.length;
 
     Object.keys(auditsGroupedByGroup).forEach(groupId => {
