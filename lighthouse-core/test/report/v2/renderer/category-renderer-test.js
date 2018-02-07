@@ -43,7 +43,7 @@ describe('CategoryRenderer', () => {
 
   it('renders an audit', () => {
     const audit = sampleResults.reportCategories[0].audits[0];
-    const auditDOM = renderer._renderAudit(audit);
+    const auditDOM = renderer.renderAudit(audit);
 
     const title = auditDOM.querySelector('.lh-score__title');
     const description = auditDOM.querySelector('.lh-score__description');
@@ -57,20 +57,20 @@ describe('CategoryRenderer', () => {
   });
 
   it('renders an audit debug str when appropriate', () => {
-    const audit1 = renderer._renderAudit({
+    const audit1 = renderer.renderAudit({
       scoringMode: 'binary', score: 0,
       result: {helpText: 'help text', debugString: 'Debug string', description: 'Audit title'},
     });
     assert.ok(audit1.querySelector('.lh-debug'));
 
-    const audit2 = renderer._renderAudit({
+    const audit2 = renderer.renderAudit({
       scoringMode: 'binary', score: 0, result: {helpText: 'help text', description: 'Audit title'},
     });
     assert.ok(!audit2.querySelector('.lh-debug'));
   });
 
   it('renders an informative audit', () => {
-    const auditDOM = renderer._renderAudit({
+    const auditDOM = renderer.renderAudit({
       id: 'informative', score: 0,
       result: {description: 'It informs', helpText: 'help text', informative: true},
     });
@@ -213,10 +213,10 @@ describe('CategoryRenderer', () => {
   });
 
   it('can set a custom templateContext', () => {
-    assert.equal(renderer._templateContext, renderer._dom.document());
+    assert.equal(renderer.templateContext, renderer.dom.document());
 
     const otherDocument = jsdom.jsdom(TEMPLATE_FILE);
     renderer.setTemplateContext(otherDocument);
-    assert.equal(renderer._templateContext, otherDocument);
+    assert.equal(renderer.templateContext, otherDocument);
   });
 });
