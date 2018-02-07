@@ -155,6 +155,15 @@ class CategoryRenderer {
     }
   }
 
+  _renderFailedAuditsSection(elements) {
+    const failedElem = this._renderAuditGroup({
+      title: `${this._getTotalAuditsLength(elements)} Failed Audits`,
+    }, {expandable: false});
+    failedElem.classList.add('lh-failed-audits');
+    elements.forEach(elem => failedElem.appendChild(elem));
+    return failedElem;
+  }
+
   /**
    * @param {!Array<!Element>} elements
    * @return {!Element}
@@ -300,20 +309,19 @@ class CategoryRenderer {
     auditsUngrouped.notApplicable.forEach((/** @type {!ReportRenderer.AuditJSON} */ audit) =>
       notApplicableElements.push(this._renderAudit(audit)));
 
-    /** @type {number} */
-    let failedAuditsCount = failedElements.length;
+    let hasFailedGroups = false;
 
     Object.keys(auditsGroupedByGroup).forEach(groupId => {
       const group = groupDefinitions[groupId];
       const groups = auditsGroupedByGroup[groupId];
-
-      failedAuditsCount += groups.failed.length;
 
       if (groups.failed.length) {
         const auditGroupElem = this._renderAuditGroup(group, {expandable: false});
         groups.failed.forEach(item => auditGroupElem.appendChild(this._renderAudit(item)));
         auditGroupElem.open = true;
         failedElements.push(auditGroupElem);
+
+        hasFailedGroups = true;
       }
 
       if (groups.passed.length) {
@@ -330,12 +338,13 @@ class CategoryRenderer {
     });
 
     if (failedElements.length) {
-      const nonPassedElem = this._renderAuditGroup({
-        title: `${failedAuditsCount} Failed Audits`,
-      }, {expandable: false});
-      nonPassedElem.classList.add('lh-failed-audits');
-      failedElements.forEach(element => nonPassedElem.appendChild(element));
-      element.appendChild(nonPassedElem);
+      // if failed audits are grouped skip the 'X Failed Audits' header
+      if (hasFailedGroups) {
+        failedElements.forEach(elem => element.appendChild(elem));
+      } else {
+        const failedElem = this._renderFailedAuditsSection(failedElements);
+        element.appendChild(failedElem);
+      }
     }
 
     if (passedElements.length) {
