@@ -155,6 +155,10 @@ class CategoryRenderer {
     }
   }
 
+  /**
+   * @param {!Array<!Element>} elements
+   * @return {!Element}
+   */
   _renderFailedAuditsSection(elements) {
     const failedElem = this._renderAuditGroup({
       title: `${this._getTotalAuditsLength(elements)} Failed Audits`,
