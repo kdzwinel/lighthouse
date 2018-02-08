@@ -70,8 +70,16 @@ class GatherRunner {
   static loadBlank(driver, url) {
     // The real about:blank doesn't fire onload and is full of mysteries (https://goo.gl/mdQkYr)
     // To improve speed and avoid anomalies (https://goo.gl/Aho2R9), we use a basic data uri page
-    url = url || `data:text/html,${logoPageSource}`;
-    const blankPageUrl = `data:text/html,${blankPageSource}`;
+
+    let blankPageUrl;
+
+    if (chrome) {
+      blankPageUrl = chrome.runtime.getURL('blank.html');
+      url = url || chrome.runtime.getURL('logo.html');
+    } else {
+      url = url || `data:text/html,${logoPageSource}`;
+      blankPageUrl = `data:text/html,${blankPageSource}`;
+    }
 
     // Only navigating to a single data-uri doesn't reliably trigger onload. (Why? Beats me.)
     // Two data uris work, however the two need to be sufficiently different (Why? Beats me.)
