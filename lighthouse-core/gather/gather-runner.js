@@ -73,7 +73,7 @@ class GatherRunner {
 
     let blankPageUrl;
 
-    if (chrome) {
+    if (typeof chrome !== 'undefined') {
       blankPageUrl = chrome.runtime.getURL('blank.html');
       url = url || chrome.runtime.getURL('logo.html');
     } else {
