@@ -7,7 +7,7 @@
 
 const Gatherer = require('../gatherer');
 
-/* global fetch, URL */
+/* global fetch, URL, location */
 
 function getRobotsTxtContent() {
   return fetch(new URL('/robots.txt', location.href))
