@@ -19,7 +19,7 @@ describe('MainResource computed artifact', () => {
 
   it('returns an artifact', () => {
     const record = {
-      statusCode: 404,
+      url: 'https://example.com',
     };
     const networkRecords = [
       record,
@@ -33,9 +33,6 @@ describe('MainResource computed artifact', () => {
 
   it('thows when main resource can\'t be found', () => {
     const networkRecords = [
-      {
-        statusCode: 302,
-      },
     ];
     computedArtifacts.requestNetworkRecords = _ => Promise.resolve(networkRecords);
 
@@ -48,16 +45,31 @@ describe('MainResource computed artifact', () => {
 
   it('should ignore redirects', () => {
     const record = {
-      statusCode: 404,
+      url: 'http://example.com/3',
+      redirectSource: {
+        url: 'http://example.com/2',
+      },
     };
     const networkRecords = [
       {
-        statusCode: 301,
+        url: 'http://example.com/1',
       },
       {
-        statusCode: 302,
+        url: 'http://example.com/2',
+        redirectSource: {
+          url: 'http://example.com/1',
+        },
       },
       record,
+      {
+        url: 'http://example.com/someimage.jpg',
+      },
+      {
+        url: 'https://example.com/someimage.jpg',
+        redirectSource: {
+          url: 'http://example.com/someimage.jpg',
+        },
+      },
     ];
     computedArtifacts.requestNetworkRecords = _ => Promise.resolve(networkRecords);
 

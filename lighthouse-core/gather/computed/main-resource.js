@@ -6,8 +6,6 @@
 'use strict';
 
 const ComputedArtifact = require('./computed-artifact');
-const HTTP_REDIRECT_CODE_LOW = 300;
-const HTTP_REDIRECT_CODE_HIGH = 399;
 
 /**
  * @fileoverview This artifact identifies the main resource on the page. Current solution assumes
@@ -19,15 +17,6 @@ class MainResource extends ComputedArtifact {
   }
 
   /**
-   * @param {WebInspector.NetworkRequest} record
-   * @return {boolean}
-   */
-  isMainResource(request) {
-    return request.statusCode < HTTP_REDIRECT_CODE_LOW ||
-      request.statusCode > HTTP_REDIRECT_CODE_HIGH;
-  }
-
-  /**
    * @param {!DevtoolsLog} devtoolsLog
    * @param {!ComputedArtifacts} artifacts
    * @return {!WebInspector.NetworkRequest}
@@ -35,7 +24,17 @@ class MainResource extends ComputedArtifact {
   compute_(devtoolsLog, artifacts) {
     return artifacts.requestNetworkRecords(devtoolsLog)
       .then(requests => {
-        const mainResource = requests.find(this.isMainResource);
+        let mainResource = null;
+
+        for (/** @type {WebInspector.NetworkRequest} */const request of requests) {
+          if (mainResource === null) {
+            mainResource = request;
+          }
+
+          if (request.redirectSource && request.redirectSource.url === mainResource.url) {
+            mainResource = request;
+          }
+        }
 
         if (!mainResource) {
           throw new Error('Unable to identify the main resource');
