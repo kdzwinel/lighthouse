@@ -6,6 +6,8 @@
 'use strict';
 
 const Audit = require('../audit');
+const robotsParser = require('robots-parser');
+const URL = require('../../lib/url-shim');
 const BLOCKLIST = new Set([
   'noindex',
   'none',
@@ -65,7 +67,7 @@ class IsCrawlable extends Audit {
       failureDescription: 'Page is blocked from indexing',
       helpText: 'The "Robots" directives tell crawlers how your content should be indexed. ' +
       '[Learn more](https://developers.google.com/search/reference/robots_meta_tag).',
-      requiredArtifacts: ['MetaRobots'],
+      requiredArtifacts: ['MetaRobots', 'RobotsTxt'],
     };
   }
 
@@ -95,6 +97,20 @@ class IsCrawlable extends Audit {
           .filter(h => h.name.toLowerCase() === ROBOTS_HEADER && !hasUserAgent(h.value) &&
             hasBlockingDirective(h.value))
           .forEach(h => blockingDirectives.push({source: `${h.name}: ${h.value}`}));
+
+        if (artifacts.RobotsTxt.content) {
+          const robotsFileUrl = new URL('/robots.txt', mainResource.url);
+          const robotsTxt = robotsParser(robotsFileUrl.href, artifacts.RobotsTxt.content);
+
+          if (!robotsTxt.isAllowed(mainResource.url)) {
+            blockingDirectives.push({
+              source: {
+                type: 'url',
+                text: robotsFileUrl.href,
+              },
+            });
+          }
+        }
 
         const headings = [
           {key: 'source', itemType: 'code', text: 'Source'},
