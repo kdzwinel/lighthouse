@@ -77,8 +77,8 @@ class GatherRunner {
       blankPageUrl = chrome.runtime.getURL('blank.html');
       url = url || chrome.runtime.getURL('logo.html');
     } else {
-      url = url || `data:text/html,${logoPageSource}`;
       blankPageUrl = `data:text/html,${blankPageSource}`;
+      url = url || `data:text/html,${logoPageSource}`;
     }
 
     // Only navigating to a single data-uri doesn't reliably trigger onload. (Why? Beats me.)

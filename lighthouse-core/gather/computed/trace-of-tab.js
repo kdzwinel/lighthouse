@@ -40,7 +40,7 @@ class TraceOfTab extends ComputedArtifact {
   compute_(trace) {
     // Parse the trace for our key events and sort them by timestamp. Note: sort
     // *must* be stable to keep events correctly nested.
-    const keyEvents = trace.traceEvents
+    let keyEvents = trace.traceEvents
       .filter(e => {
         return e.cat.includes('blink.user_timing') ||
           e.cat.includes('loading') ||
@@ -48,6 +48,11 @@ class TraceOfTab extends ComputedArtifact {
           e.name === 'TracingStartedInPage';
       })
       .stableSort((event0, event1) => event0.ts - event1.ts);
+
+    keyEvents = keyEvents.filter(e => {
+      return !(e.args.data && e.args.data.frames && e.args.data.frames[0] &&
+        e.args.data.frames[0].url.indexOf('chrome-extension://') === 0);
+    });
 
     // The first TracingStartedInPage in the trace is definitely our renderer thread of interest
     // Beware: the tracingStartedInPage event can appear slightly after a navigationStart
