@@ -77,7 +77,12 @@ gulp.task('css', () => {
   .pipe(gulp.dest(`${distDir}/styles`));
 });
 
-gulp.task('html', () => {
+gulp.task('html:resets', () => {
+  return gulp.src('../lighthouse-core/gather/*.html')
+  .pipe(gulp.dest('app/'));
+});
+
+gulp.task('html', ['html:resets'], () => {
   return gulp.src('app/*.html')
   .pipe(gulp.dest(distDir));
 });

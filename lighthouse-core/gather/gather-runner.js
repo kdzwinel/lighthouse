@@ -63,22 +63,22 @@ class GatherRunner {
    * Loads a blank page and waits there briefly. Since a Page.reload command does
    * not let a service worker take over, we navigate away and then come back to reload.
    * @param {!Driver} driver
-   * @param {url=} url
+   * @param {url=} resetPageUrl
    * @param {number=} duration
    * @return {!Promise}
    */
-  static loadBlank(driver, url) {
+  static loadBlank(driver, resetPageUrl) {
     // The real about:blank doesn't fire onload and is full of mysteries (https://goo.gl/mdQkYr)
     // To improve speed and avoid anomalies (https://goo.gl/Aho2R9), we use a basic data uri page
-
     let blankPageUrl;
 
+    // Extensions can't run against data uri. See #4470
     if (typeof chrome !== 'undefined') {
-      blankPageUrl = chrome.runtime.getURL('blank.html');
-      url = url || chrome.runtime.getURL('logo.html');
+      blankPageUrl = global.chrome.runtime.getURL('blank-page.html');
+      resetPageUrl = resetPageUrl || global.chrome.runtime.getURL('logo-page.html');
     } else {
       blankPageUrl = `data:text/html,${blankPageSource}`;
-      url = url || `data:text/html,${logoPageSource}`;
+      resetPageUrl = resetPageUrl || `data:text/html,${logoPageSource}`;
     }
 
     // Only navigating to a single data-uri doesn't reliably trigger onload. (Why? Beats me.)
@@ -87,7 +87,7 @@ class GatherRunner {
     // Lastly, it's possible for two navigations to be racy, so we await onload inbetween.
     return driver.gotoURL(blankPageUrl)
       .then(_ => driver.waitForLoadEvent())
-      .then(_ => driver.gotoURL(url))
+      .then(_ => driver.gotoURL(resetPageUrl))
       .then(_ => driver.waitForLoadEvent());
   }
 

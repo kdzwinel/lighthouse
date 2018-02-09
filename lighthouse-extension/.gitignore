@@ -8,3 +8,5 @@ test/bower_components
 package
 app/scripts
 app/pages/scripts/lighthouse-report.js
+app/blank-page.html
+app/logo-page.html
