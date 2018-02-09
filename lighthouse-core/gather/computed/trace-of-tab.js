@@ -40,7 +40,7 @@ class TraceOfTab extends ComputedArtifact {
   compute_(trace) {
     // Parse the trace for our key events and sort them by timestamp. Note: sort
     // *must* be stable to keep events correctly nested.
-    let keyEvents = trace.traceEvents
+    const keyEvents = trace.traceEvents
       .filter(e => {
         return e.cat.includes('blink.user_timing') ||
           e.cat.includes('loading') ||
@@ -49,15 +49,19 @@ class TraceOfTab extends ComputedArtifact {
       })
       .stableSort((event0, event1) => event0.ts - event1.ts);
 
-    keyEvents = keyEvents.filter(e => {
-      return !(e.args.data && e.args.data.frames && e.args.data.frames[0] &&
-        e.args.data.frames[0].url.indexOf('chrome-extension://') === 0);
-    });
-
     // The first TracingStartedInPage in the trace is definitely our renderer thread of interest
     // Beware: the tracingStartedInPage event can appear slightly after a navigationStart
-    const startedInPageEvt = keyEvents.find(e => e.name === 'TracingStartedInPage');
+    const startedInPageEvt = keyEvents.find(e => {
+      if (e.name !== 'TracingStartedInPage') return false;
+      // In the extension, the first TracingStartedInPage is on chrome-extension://…/logo.html
+      // We'll await the next, which is the page/frame of the target URL
+      const url = e.args.data && e.args.data.frames && e.args.data.frames[0] &&
+          e.args.data.frames[0].url;
+      return !(url.startsWith('chrome-extension:') || url.startsWith('data:'));
+    });
+
     if (!startedInPageEvt) throw new LHError(LHError.errors.NO_TRACING_STARTED);
+
     // Filter to just events matching the frame ID for sanity
     const frameEvents = keyEvents.filter(e => e.args.frame === startedInPageEvt.args.data.page);
 
