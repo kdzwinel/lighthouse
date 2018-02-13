@@ -22,9 +22,11 @@ describe('MainResource computed artifact', () => {
       url: 'https://example.com',
     };
     const networkRecords = [
+      {url: 'http://example.com'},
       record,
     ];
     computedArtifacts.requestNetworkRecords = _ => Promise.resolve(networkRecords);
+    computedArtifacts.URL = {finalUrl: 'https://example.com'};
 
     return computedArtifacts.requestMainResource({}).then(output => {
       assert.equal(output, record);
@@ -33,8 +35,10 @@ describe('MainResource computed artifact', () => {
 
   it('thows when main resource can\'t be found', () => {
     const networkRecords = [
+      {url: 'https://example.com'},
     ];
     computedArtifacts.requestNetworkRecords = _ => Promise.resolve(networkRecords);
+    computedArtifacts.URL = {finalUrl: 'https://m.example.com'};
 
     return computedArtifacts.requestMainResource({}).then(() => {
       assert.ok(false, 'should have thrown');
@@ -43,43 +47,9 @@ describe('MainResource computed artifact', () => {
     });
   });
 
-  it('should ignore redirects', () => {
-    const record = {
-      url: 'http://example.com/3',
-      redirectSource: {
-        url: 'http://example.com/2',
-      },
-    };
-    const networkRecords = [
-      {
-        url: 'http://example.com/1',
-      },
-      {
-        url: 'http://example.com/2',
-        redirectSource: {
-          url: 'http://example.com/1',
-        },
-      },
-      record,
-      {
-        url: 'http://example.com/someimage.jpg',
-      },
-      {
-        url: 'https://example.com/someimage.jpg',
-        redirectSource: {
-          url: 'http://example.com/someimage.jpg',
-        },
-      },
-    ];
-    computedArtifacts.requestNetworkRecords = _ => Promise.resolve(networkRecords);
-
-    return computedArtifacts.requestMainResource({}).then(output => {
-      assert.equal(output, record);
-    });
-  });
-
   it('should identify correct main resource in the wikipedia fixture', () => {
     const wikiDevtoolsLog = require('../../fixtures/wikipedia-redirect.devtoolslog.json');
+    computedArtifacts.URL = {finalUrl: 'https://en.m.wikipedia.org/wiki/Main_Page'};
 
     return computedArtifacts.requestMainResource(wikiDevtoolsLog).then(output => {
       assert.equal(output.url, 'https://en.m.wikipedia.org/wiki/Main_Page');

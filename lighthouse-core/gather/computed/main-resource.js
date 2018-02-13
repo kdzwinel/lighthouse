@@ -24,17 +24,7 @@ class MainResource extends ComputedArtifact {
   compute_(devtoolsLog, artifacts) {
     return artifacts.requestNetworkRecords(devtoolsLog)
       .then(requests => {
-        let mainResource = null;
-
-        for (/** @type {WebInspector.NetworkRequest} */const request of requests) {
-          if (mainResource === null) {
-            mainResource = request;
-          }
-
-          if (request.redirectSource && request.redirectSource.url === mainResource.url) {
-            mainResource = request;
-          }
-        }
+        const mainResource = requests.find(request => request.url === artifacts.URL.finalUrl);
 
         if (!mainResource) {
           throw new Error('Unable to identify the main resource');
