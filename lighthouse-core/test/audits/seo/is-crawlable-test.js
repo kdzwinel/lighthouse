@@ -26,12 +26,11 @@ describe('SEO: Is page crawlable audit', () => {
       const mainResource = {
         responseHeaders: [],
       };
-      const robotsTxt = {};
       const artifacts = {
         devtoolsLogs: {[IsCrawlableAudit.DEFAULT_PASS]: []},
         requestMainResource: () => Promise.resolve(mainResource),
         MetaRobots: robotsValue,
-        RobotsTxt: robotsTxt,
+        RobotsTxt: {},
       };
 
       return IsCrawlableAudit.audit(artifacts).then(auditResult => {
@@ -47,12 +46,11 @@ describe('SEO: Is page crawlable audit', () => {
     const mainResource = {
       responseHeaders: [],
     };
-    const robotsTxt = {};
     const artifacts = {
       devtoolsLogs: {[IsCrawlableAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
       MetaRobots: 'all, noarchive',
-      RobotsTxt: robotsTxt,
+      RobotsTxt: {},
     };
 
     return IsCrawlableAudit.audit(artifacts).then(auditResult => {
@@ -64,12 +62,11 @@ describe('SEO: Is page crawlable audit', () => {
     const mainResource = {
       responseHeaders: [],
     };
-    const robotsTxt = {};
     const artifacts = {
       devtoolsLogs: {[IsCrawlableAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
       MetaRobots: null,
-      RobotsTxt: robotsTxt,
+      RobotsTxt: {},
     };
 
     return IsCrawlableAudit.audit(artifacts).then(auditResult => {
@@ -104,12 +101,11 @@ describe('SEO: Is page crawlable audit', () => {
       const mainResource = {
         responseHeaders: headers,
       };
-      const robotsTxt = {};
       const artifacts = {
         devtoolsLogs: {[IsCrawlableAudit.DEFAULT_PASS]: []},
         requestMainResource: () => Promise.resolve(mainResource),
         MetaRobots: null,
-        RobotsTxt: robotsTxt,
+        RobotsTxt: {},
       };
 
       return IsCrawlableAudit.audit(artifacts).then(auditResult => {
@@ -128,12 +124,11 @@ describe('SEO: Is page crawlable audit', () => {
         {name: 'X-Robots-Tag', value: 'unavailable_after: 25 Jun 2045 15:00:00 PST'},
       ],
     };
-    const robotsTxt = {};
     const artifacts = {
       devtoolsLogs: {[IsCrawlableAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
       MetaRobots: null,
-      RobotsTxt: robotsTxt,
+      RobotsTxt: {},
     };
 
     return IsCrawlableAudit.audit(artifacts).then(auditResult => {
@@ -145,12 +140,11 @@ describe('SEO: Is page crawlable audit', () => {
     const mainResource = {
       responseHeaders: [],
     };
-    const robotsTxt = {};
     const artifacts = {
       devtoolsLogs: {[IsCrawlableAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
       MetaRobots: null,
-      RobotsTxt: robotsTxt,
+      RobotsTxt: {},
     };
 
     return IsCrawlableAudit.audit(artifacts).then(auditResult => {
@@ -165,12 +159,11 @@ describe('SEO: Is page crawlable audit', () => {
         {name: 'x-robots-tag', value: 'unavailable_after: 25 Jun 2045 15:00:00 PST'},
       ],
     };
-    const robotsTxt = {};
     const artifacts = {
       devtoolsLogs: {[IsCrawlableAudit.DEFAULT_PASS]: []},
       requestMainResource: () => Promise.resolve(mainResource),
       MetaRobots: null,
-      RobotsTxt: robotsTxt,
+      RobotsTxt: {},
     };
 
     return IsCrawlableAudit.audit(artifacts).then(auditResult => {
