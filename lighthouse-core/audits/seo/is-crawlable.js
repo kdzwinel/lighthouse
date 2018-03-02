@@ -113,7 +113,7 @@ class IsCrawlable extends Audit {
         }
 
         const headings = [
-          {key: 'source', itemType: 'code', text: 'Source'},
+          {key: 'source', itemType: 'code', text: 'Blocking Directive Source'},
         ];
         const details = Audit.makeTableDetails(headings, blockingDirectives);
 
