@@ -12,7 +12,7 @@ const path = require('path');
  * This is a browserify transform that looks for requires to url
  * and replaces them for url-shim.
  */
-module.exports = function() {
+module.exports = function(file) {
   const fileContents = [];
   return through(function(part, enc, next) {
     fileContents.push(part);
@@ -20,11 +20,16 @@ module.exports = function() {
   }, function(done) {
     let fileContentsString = fileContents.join('');
     const dtmRegExp = /require\(['"]url['"]\)/gim;
-    const newPath = path.join(__dirname, '../',
-        'lighthouse-core/lib/url-shim');
+    const absoluteShimPath = path.join(__dirname, '../lighthouse-core/lib/url-shim.js');
 
-    if (dtmRegExp.test(fileContentsString)) {
-      fileContentsString = fileContentsString.replace(dtmRegExp, `require("${newPath}")`);
+    // do not modify url-shim itself
+    if (absoluteShimPath !== file) {
+      const relativeShimPath = path.relative(path.dirname(file), path.dirname(absoluteShimPath));
+      const newPath = path.join(relativeShimPath, 'url-shim');
+
+      if (dtmRegExp.test(fileContentsString)) {
+        fileContentsString = fileContentsString.replace(dtmRegExp, `require("${newPath}")`);
+      }
     }
 
     // eslint-disable-next-line no-invalid-this
