@@ -100,8 +100,6 @@ gulp.task('chromeManifest', () => {
 function applyBrowserifyTransforms(bundle) {
   // Fix an issue with imported speedline code that doesn't brfs well.
   return bundle.transform('./fs-transform', {global: true})
-  // Replace url module with url-shim
-  .transform('./url-transform', {global: true})
   // Transform the fs.readFile etc, but do so in all the modules.
   .transform('brfs', {global: true})
   // Strip everything out of package.json includes except for the version.
@@ -123,7 +121,6 @@ gulp.task('browserify-lighthouse', () => {
       // to the modified version internal to Lighthouse.
       bundle.transform('./dtm-transform.js', {global: true})
       .ignore('source-map')
-      .ignore('url')
       .ignore('debug/node')
       .ignore('raven')
       .ignore('mkdirp')
