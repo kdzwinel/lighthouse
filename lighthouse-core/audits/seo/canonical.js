@@ -90,6 +90,7 @@ class Canonical extends Audit {
           });
 
         canonicals = canonicals.concat(artifacts.Canonical);
+        canonicals = Array.from(new Set(canonicals));
 
         artifacts.Hreflang.forEach(({href}) => hreflangs.push(href));
 
