@@ -110,7 +110,7 @@ class Canonical extends Audit {
         if (canonicals.length > 1) {
           return {
             rawValue: false,
-            debugString: `Multiple URLs (${canonicals.join(', ')})`,
+            debugString: `Multiple conflicting URLs (${canonicals.join(', ')})`,
           };
         }
 
