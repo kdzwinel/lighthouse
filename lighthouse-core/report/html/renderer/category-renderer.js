@@ -62,6 +62,7 @@ class CategoryRenderer {
     this.dom.find('.lh-audit__description', auditEl)
         .appendChild(this.dom.convertMarkdownLinkSnippets(audit.result.description, {
           channel: this.reportChannel,
+          rating: Util.calculateRating(audit.result.score, scoreDisplayMode),
         }));
 
     const header = /** @type {HTMLDetailsElement} */ (this.dom.find('details', auditEl));
