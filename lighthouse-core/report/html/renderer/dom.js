@@ -96,7 +96,7 @@ class DOM {
 
   /**
    * @param {string} text
-   * @param {{channel: ?string, rating: (string|undefined)}|undefined} metadata
+   * @param {{channel?: string | null, rating?: string}=} metadata
    * @return {Element}
    */
   convertMarkdownLinkSnippets(text, metadata) {
