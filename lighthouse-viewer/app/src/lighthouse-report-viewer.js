@@ -116,7 +116,7 @@ class LighthouseReportViewer {
     }
 
     // Leave off patch version in the comparison.
-    const semverRe = new RegExp(/^(\d+)?\.(\d+)?\.(\d+)$/);
+    const semverRe = new RegExp(/^(\d+)?\.(\d+)?\.(\d+)(\+[a-z]+)?$/);
     const reportVersion = reportJson.lighthouseVersion.replace(semverRe, '$1.$2');
     const lhVersion = window.LH_CURRENT_VERSION.replace(semverRe, '$1.$2');
 

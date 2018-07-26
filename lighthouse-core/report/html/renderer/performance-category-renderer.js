@@ -30,7 +30,9 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
     valueEl.textContent = Util.formatDisplayValue(audit.result.displayValue);
 
     const descriptionEl = this.dom.find('.lh-metric__description', tmpl);
-    descriptionEl.appendChild(this.dom.convertMarkdownLinkSnippets(audit.result.description));
+    descriptionEl.appendChild(this.dom.convertMarkdownLinkSnippets(audit.result.description, {
+      channel: this.reportChannel,
+    }));
 
     if (audit.result.scoreDisplayMode === 'error') {
       descriptionEl.textContent = '';

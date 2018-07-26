@@ -104,9 +104,11 @@ gulp.task('chromeManifest', () => {
   .pipe(gulp.dest(distDir));
 });
 
-function applyBrowserifyTransforms(bundle) {
+function applyBrowserifyTransforms(bundle, channel) {
   // Fix an issue with imported speedline code that doesn't brfs well.
   return bundle.transform('./fs-transform', {global: true})
+  // Replace LH_CHANNEL enviroment variable with a string
+  .transform('./lh-channel-transform', {channel, global: true})
   // Transform the fs.readFile etc, but do so in all the modules.
   .transform('brfs', {global: true, parserOpts: {ecmaVersion: 9}})
   // Strip everything out of package.json includes except for the version.
@@ -119,8 +121,9 @@ gulp.task('browserify-lighthouse', () => {
     'app/src/lighthouse-ext-background.js',
   ], {read: false})
     .pipe(tap(file => {
+      const channel = /lighthouse-background/.test(file.path) ? 'cdt' : 'ext';
       let bundle = browserify(file.path); // , {debug: true}); // for sourcemaps
-      bundle = applyBrowserifyTransforms(bundle);
+      bundle = applyBrowserifyTransforms(bundle, channel);
 
       // scripts will need some additional transforms, ignores and requires…
       bundle.ignore('source-map')
@@ -132,7 +135,7 @@ gulp.task('browserify-lighthouse', () => {
       .ignore('pako/lib/zlib/inflate.js');
 
       // Prevent the DevTools background script from getting the stringified HTML.
-      if (/lighthouse-background/.test(file.path)) {
+      if (channel === 'cdt') {
         bundle.ignore(require.resolve('../lighthouse-core/report/html/html-report-assets.js'));
       }
 

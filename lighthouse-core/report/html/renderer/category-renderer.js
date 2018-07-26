@@ -24,6 +24,8 @@ class CategoryRenderer {
     this.detailsRenderer = detailsRenderer;
     /** @type {ParentNode} */
     this.templateContext = this.dom.document();
+    /** @protected {?string} */
+    this.reportChannel = null;
 
     this.detailsRenderer.setTemplateContext(this.templateContext);
   }
@@ -58,7 +60,9 @@ class CategoryRenderer {
     const titleEl = this.dom.find('.lh-audit__title', auditEl);
     titleEl.appendChild(this.dom.convertMarkdownCodeSnippets(audit.result.title));
     this.dom.find('.lh-audit__description', auditEl)
-        .appendChild(this.dom.convertMarkdownLinkSnippets(audit.result.description));
+        .appendChild(this.dom.convertMarkdownLinkSnippets(audit.result.description, {
+          channel: this.reportChannel,
+        }));
 
     const header = /** @type {HTMLDetailsElement} */ (this.dom.find('details', auditEl));
     if (audit.result.details && audit.result.details.type) {
@@ -136,7 +140,9 @@ class CategoryRenderer {
     this.dom.find('.lh-category-header__title', tmpl).appendChild(
       this.dom.convertMarkdownCodeSnippets(category.title));
     if (category.description) {
-      const descEl = this.dom.convertMarkdownLinkSnippets(category.description);
+      const descEl = this.dom.convertMarkdownLinkSnippets(category.description, {
+        channel: this.reportChannel,
+      });
       this.dom.find('.lh-category-header__description', tmpl).appendChild(descEl);
     }
 
@@ -163,7 +169,9 @@ class CategoryRenderer {
 
     if (group.description) {
       const auditGroupDescription = this.dom.createElement('div', 'lh-audit-group__description');
-      auditGroupDescription.appendChild(this.dom.convertMarkdownLinkSnippets(group.description));
+      auditGroupDescription.appendChild(this.dom.convertMarkdownLinkSnippets(group.description, {
+        channel: this.reportChannel,
+      }));
       groupEl.appendChild(auditGroupDescription);
     }
     headerEl.textContent = group.title;
@@ -217,6 +225,13 @@ class CategoryRenderer {
     passedElem.classList.add('lh-passed-audits');
     elements.forEach(elem => passedElem.appendChild(elem));
     return passedElem;
+  }
+
+  /**
+   * @param {string} channel
+   */
+  setReportChannel(channel) {
+    this.reportChannel = channel;
   }
 
   /**

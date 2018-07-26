@@ -183,6 +183,12 @@ class ReportRenderer {
     const perfCategoryRenderer = new PerformanceCategoryRenderer(this._dom, detailsRenderer);
     perfCategoryRenderer.setTemplateContext(this._templateContext);
 
+    if (report.lighthouseVersion.includes('+')) {
+      const lighthouseChannel = report.lighthouseVersion.split('+')[1];
+      categoryRenderer.setReportChannel(lighthouseChannel);
+      perfCategoryRenderer.setReportChannel(lighthouseChannel);
+    }
+
     const categories = reportSection.appendChild(this._dom.createElement('div', 'lh-categories'));
 
     for (const category of report.reportCategories) {

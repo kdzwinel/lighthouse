@@ -96,13 +96,16 @@ class DOM {
 
   /**
    * @param {string} text
+   * @param {{channel: ?string, rating: (string|undefined)}|undefined} metadata
    * @return {Element}
    */
-  convertMarkdownLinkSnippets(text) {
+  convertMarkdownLinkSnippets(text, metadata) {
     const element = this.createElement('span');
 
     // Split on markdown links (e.g. [some link](https://...)).
     const parts = text.split(/\[([^\]]*?)\]\((https?:\/\/.*?)\)/g);
+
+    const DEVELOPERS_GOOGLE_ORIGIN = 'https://developers.google.com';
 
     while (parts.length) {
       // Pop off the same number of elements as there are capture groups.
@@ -115,7 +118,21 @@ class DOM {
         a.rel = 'noopener';
         a.target = '_blank';
         a.textContent = linkText;
-        a.href = (new URL(linkHref)).href;
+
+        const url = new URL(linkHref);
+
+        if (url.origin === DEVELOPERS_GOOGLE_ORIGIN) {
+          url.searchParams.set('utm_source', 'lighthouse');
+
+          if (metadata && metadata.channel) {
+            url.searchParams.set('utm_medium', metadata.channel);
+          }
+          if (metadata && metadata.rating) {
+            url.searchParams.set('utm_content', metadata.rating);
+          }
+        }
+
+        a.href = url.href;
         element.appendChild(a);
       }
     }

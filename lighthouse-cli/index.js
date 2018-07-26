@@ -6,4 +6,5 @@
  */
 'use strict';
 
+process.env.LH_CHANNEL = process.env.LH_CHANNEL || 'cli';
 require('./bin.js').run();

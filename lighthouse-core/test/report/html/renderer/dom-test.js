@@ -115,6 +115,24 @@ describe('DOM', () => {
       assert.equal(result.innerHTML, 'Ensuring `&lt;td&gt;` cells using the `[headers]` are ' +
           'good. <a rel="noopener" target="_blank" href="https://dequeuniversity.com/rules/axe/2.2/td-headers-attr">Learn more</a>.');
     });
+
+    it('appends utm params to the URLs with https://developers.google.com origin', () => {
+      const text = '[Learn more](https://developers.google.com/web/tools/lighthouse/audits/description).';
+
+      let result = dom.convertMarkdownLinkSnippets(text);
+      assert.equal(result.innerHTML, '<a rel="noopener" target="_blank" href="https://developers.google.com/web/tools/lighthouse/audits/description?utm_source=lighthouse">Learn more</a>.');
+
+      result = dom.convertMarkdownLinkSnippets(text, {
+        channel: 'cli',
+      });
+      assert.equal(result.innerHTML, '<a rel="noopener" target="_blank" href="https://developers.google.com/web/tools/lighthouse/audits/description?utm_source=lighthouse&amp;utm_medium=cli">Learn more</a>.');
+
+      result = dom.convertMarkdownLinkSnippets(text, {
+        channel: 'ext',
+        rating: 'fail',
+      });
+      assert.equal(result.innerHTML, '<a rel="noopener" target="_blank" href="https://developers.google.com/web/tools/lighthouse/audits/description?utm_source=lighthouse&amp;utm_medium=ext&amp;utm_content=fail">Learn more</a>.');
+    });
   });
 
   describe('convertMarkdownCodeSnippets', () => {

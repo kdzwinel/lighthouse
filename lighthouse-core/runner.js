@@ -108,7 +108,10 @@ class Runner {
 
       // Entering: conclusion of the lighthouse result object
       // @ts-ignore - Needs json require() support
-      const lighthouseVersion = /** @type {string} */ (require('../package.json').version);
+      const lighthousePackageVersion = /** @type {string} */ (require('../package.json').version);
+      const lighthouseChannel = process.env.LH_CHANNEL || 'nm';
+
+      const lighthouseVersion = `${lighthousePackageVersion}+${lighthouseChannel}`;
 
       /** @type {Object<string, LH.Audit.Result>} */
       const resultsById = {};
