@@ -107,7 +107,7 @@ gulp.task('chromeManifest', () => {
 function applyBrowserifyTransforms(bundle, channel) {
   // Fix an issue with imported speedline code that doesn't brfs well.
   return bundle.transform('./fs-transform', {global: true})
-  // Replace LH_CHANNEL enviroment variable with a string
+  // Replace LH_CHANNEL environment variable with a string
   .transform('./lh-channel-transform', {channel, global: true})
   // Transform the fs.readFile etc, but do so in all the modules.
   .transform('brfs', {global: true, parserOpts: {ecmaVersion: 9}})

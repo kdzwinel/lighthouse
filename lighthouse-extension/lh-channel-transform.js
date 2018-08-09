@@ -8,7 +8,7 @@
 const through = require('through2');
 
 /**
- * This is a browserify transform replaces LH_CHANNEL node enviroment variable
+ * This is a browserify transform replaces LH_CHANNEL node environment variable
  * It should be replaced with envify as soon as it supports object rest/spread properties
  */
 module.exports = function(file, options) {
