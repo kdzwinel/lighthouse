@@ -10,7 +10,9 @@ const UnusedBytes = require('./byte-efficiency/byte-efficiency-audit');
 const i18n = require('../lib/i18n');
 
 const UIStrings = {
+  /** Imperative title of a Lighthouse audit that tells the user to eliminate the redirects taken through multiple URLs to load the page. This is shown in a list of audits that Lighthouse generates. */
   title: 'Avoid multiple page redirects',
+  /** Description of a Lighthouse audit that tells users why they should reduce the number of server-side redirects on their page. This is displayed after a user expands the section to see more. No character length limits. 'Learn More' becomes link text to additional documentation. */
   description: 'Redirects introduce additional delays before the page can be loaded. [Learn more](https://developers.google.com/web/tools/lighthouse/audits/redirects).',
 };
 
@@ -92,12 +94,12 @@ class Redirects extends Audit {
       });
     }
 
+    /** @type {LH.Result.Audit.OpportunityDetails['headings']} */
     const headings = [
-      {key: 'url', itemType: 'text', text: str_(i18n.UIStrings.columnURL)},
-      {key: 'wastedMs', itemType: 'ms', text: str_(i18n.UIStrings.columnTimeSpent)},
+      {key: 'url', valueType: 'url', label: str_(i18n.UIStrings.columnURL)},
+      {key: 'wastedMs', valueType: 'timespanMs', label: str_(i18n.UIStrings.columnTimeSpent)},
     ];
-    const summary = {wastedMs: totalWastedMs};
-    const details = Audit.makeTableDetails(headings, pageRedirects, summary);
+    const details = Audit.makeOpportunityDetails(headings, pageRedirects, totalWastedMs);
 
     return {
       // We award a passing grade if you only have 1 redirect

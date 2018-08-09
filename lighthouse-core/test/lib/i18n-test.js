@@ -58,7 +58,22 @@ describe('i18n', () => {
   describe('#getRendererFormattedStrings', () => {
     it('returns icu messages in the specified locale', () => {
       const strings = i18n.getRendererFormattedStrings('en-XA');
-      expect(strings.passedAuditsGroupTitle).toEqual('P̂áŝśêd́ âúd̂ít̂ś');
+      expect(strings.passedAuditsGroupTitle).toEqual('[Þåššéð åûðîţš one two]');
+      expect(strings.scorescaleLabel).toEqual('[Šçöŕé šçåļé: one two]');
+    });
+  });
+
+  describe('#lookupLocale', () => {
+    it('canonicalizes the locale', () => {
+      expect(i18n.lookupLocale('en-xa')).toEqual('en-XA');
+    });
+
+    it('falls back to root tag prefix if specific locale not available', () => {
+      expect(i18n.lookupLocale('en-JKJK')).toEqual('en');
+    });
+
+    it('falls back to en if no match is available', () => {
+      expect(i18n.lookupLocale('jk-Latn-DE-1996-a-ext-x-phonebk-i-klingon')).toEqual('en');
     });
   });
 });

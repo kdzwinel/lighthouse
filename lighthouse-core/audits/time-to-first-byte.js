@@ -9,9 +9,14 @@ const Audit = require('./audit');
 const i18n = require('../lib/i18n');
 
 const UIStrings = {
-  title: 'Keep server response times low (TTFB)',
+  /** Title of a diagnostic audit that provides detail on how long it took from starting a request to when the server started responding. This descriptive title is shown to users when the amount is acceptable and no user action is required. */
+  title: 'Server response times are low (TTFB)',
+  /** Title of a diagnostic audit that provides detail on how long it took from starting a request to when the server started responding. This imperative title is shown to users when there is a significant amount of execution time that could be reduced. */
+  failureTitle: 'Reduce server response times (TTFB)',
+  /** Description of a Lighthouse audit that tells the user *why* they should reduce the amount of time it takes their server to start responding to requests. This is displayed after a user expands the section to see more. No character length limits. 'Learn More' becomes link text to additional documentation. */
   description: 'Time To First Byte identifies the time at which your server sends a response.' +
     ' [Learn more](https://developers.google.com/web/tools/lighthouse/audits/ttfb).',
+  /** Used to summarize the total Time to First Byte duration for the primary HTML response. The `{timeInMs}` placeholder will be replaced with the time duration, shown in milliseconds (e.g. 210 ms) */
   displayValue: `Root document took {timeInMs, number, milliseconds}\xa0ms`,
 };
 
@@ -27,6 +32,7 @@ class TTFBMetric extends Audit {
     return {
       id: 'time-to-first-byte',
       title: str_(UIStrings.title),
+      failureTitle: str_(UIStrings.failureTitle),
       description: str_(UIStrings.description),
       requiredArtifacts: ['devtoolsLogs', 'URL'],
     };

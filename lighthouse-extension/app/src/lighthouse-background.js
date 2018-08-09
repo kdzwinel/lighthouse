@@ -8,8 +8,8 @@
 const RawProtocol = require('../../../lighthouse-core/gather/connections/raw');
 const Runner = require('../../../lighthouse-core/runner');
 const Config = require('../../../lighthouse-core/config/config');
-const i18n = require('../../../lighthouse-core/lib/i18n');
 const defaultConfig = require('../../../lighthouse-core/config/default-config.js');
+const i18n = require('../../../lighthouse-core/lib/i18n');
 const log = require('lighthouse-logger');
 
 /** @typedef {import('../../../lighthouse-core/gather/connections/connection.js')} Connection */
@@ -17,27 +17,22 @@ const log = require('lighthouse-logger');
 /**
  * @param {Connection} connection
  * @param {string} url
- * @param {{flags: LH.Flags}} options Lighthouse options.
+ * @param {LH.Flags} flags Lighthouse flags.
  * @param {Array<string>} categoryIDs Name values of categories to include.
  * @param {(url?: string) => void} updateBadgeFn
  * @return {Promise<LH.RunnerResult|void>}
  */
-function runLighthouseForConnection(
-  connection, url, options, categoryIDs,
-  updateBadgeFn = function() { }) {
+function runLighthouseForConnection(connection, url, flags, categoryIDs, updateBadgeFn = _ => {}) {
   const config = new Config({
     extends: 'lighthouse:default',
     settings: {
-      locale: i18n.getDefaultLocale(),
       onlyCategories: categoryIDs,
     },
-  }, options.flags);
+  }, flags);
 
-  // Add url and config to fresh options object.
-  const runOptions = Object.assign({}, options, {url, config});
   updateBadgeFn(url);
 
-  return Runner.run(connection, runOptions) // Run Lighthouse.
+  return Runner.run(connection, {url, config}) // Run Lighthouse.
     .then(result => {
       updateBadgeFn();
       return result;
@@ -51,15 +46,15 @@ function runLighthouseForConnection(
 /**
  * @param {RawProtocol.Port} port
  * @param {string} url
- * @param {{flags: LH.Flags}} options Lighthouse options.
+ * @param {LH.Flags} flags Lighthouse flags.
  * @param {Array<string>} categoryIDs Name values of categories to include.
  * @return {Promise<LH.RunnerResult|void>}
  */
-function runLighthouseInWorker(port, url, options, categoryIDs) {
+function runLighthouseInWorker(port, url, flags, categoryIDs) {
   // Default to 'info' logging level.
   log.setLevel('info');
   const connection = new RawProtocol(port);
-  return runLighthouseForConnection(connection, url, options, categoryIDs);
+  return runLighthouseForConnection(connection, url, flags, categoryIDs);
 }
 
 /**
@@ -67,7 +62,9 @@ function runLighthouseInWorker(port, url, options, categoryIDs) {
  * @return {Array<{title: string, id: string}>}
  */
 function getDefaultCategories() {
-  return Config.getCategories(defaultConfig);
+  const categories = Config.getCategories(defaultConfig);
+  categories.forEach(cat => cat.title = i18n.getFormatted(cat.title, 'en-US'));
+  return categories;
 }
 
 /** @param {(status: [string, string, string]) => void} listenCallback */

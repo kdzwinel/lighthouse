@@ -6,12 +6,13 @@
 'use strict';
 
 const ByteEfficiencyAudit = require('./byte-efficiency-audit');
-// @ts-ignore - TODO: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/25410
 const esprima = require('esprima');
 const i18n = require('../../lib/i18n');
 
 const UIStrings = {
+  /** Imperative title of a Lighthouse audit that tells the user to minify the page’s JS code to reduce file size. This is displayed in a list of audit titles that Lighthouse generates. */
   title: 'Minify JavaScript',
+  /** Description of a Lighthouse audit that tells the user *why* they should minify the page’s JS code to reduce file size. This is displayed after a user expands the section to see more. No character length limits. 'Learn More' becomes link text to additional documentation. */
   description: 'Minifying JavaScript files can reduce payload sizes and script parse time. ' +
     '[Learn more](https://developers.google.com/speed/docs/insights/MinifyResources).',
 };
@@ -54,7 +55,8 @@ class UnminifiedJavaScript extends ByteEfficiencyAudit {
     const contentLength = scriptContent.length;
     let totalTokenLength = 0;
 
-    const tokens = esprima.tokenize(scriptContent, {tolerant: true});
+    /** @type {Array<esprima.Token> & {errors: Error[]}} */
+    const tokens = (esprima.tokenize(scriptContent, {tolerant: true}));
     if (!tokens.length && tokens.errors && tokens.errors.length) {
       throw tokens.errors[0];
     }

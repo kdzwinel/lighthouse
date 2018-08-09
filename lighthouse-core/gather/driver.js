@@ -222,6 +222,7 @@ class Driver {
         //    so that they can be serialized properly b/c JSON.stringify(new Error('foo')) === '{}'
         expression: `(function wrapInNativePromise() {
           const __nativePromise = window.__nativePromise || Promise;
+          const URL = window.__nativeURL || window.URL;
           return new __nativePromise(function (resolve) {
             return __nativePromise.resolve()
               .then(_ => ${expression})
@@ -1068,7 +1069,8 @@ class Driver {
    */
   async cacheNatives() {
     await this.evaluateScriptOnNewDocument(`window.__nativePromise = Promise;
-        window.__nativeError = Error;`);
+        window.__nativeError = Error;
+        window.__nativeURL = URL;`);
   }
 
   /**
@@ -1165,9 +1167,13 @@ Driver.prototype.off = function off(eventName, cb) {
  * Necessitated by `params` only being optional for some values of `method`.
  * See https://github.com/Microsoft/TypeScript/issues/5453 for needed variadic
  * primitive.
- * @type {(this: Driver, method: any, params?: any, cmdOpts?: {silent?: boolean}) => Promise<CommandReturnTypes>}
+ * @this {Driver}
+ * @param {any} method
+ * @param {any=} params,
+ * @param {{silent?: boolean}=} cmdOpts
+ * @return {Promise<CommandReturnTypes>}
  */
-function _sendCommand(method, params = {}, cmdOpts = {}) {
+function _sendCommand(method, params, cmdOpts = {}) {
   const domainCommand = /^(\w+)\.(enable|disable)$/.exec(method);
   if (domainCommand) {
     const enable = domainCommand[2] === 'enable';

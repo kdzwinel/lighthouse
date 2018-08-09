@@ -10,6 +10,7 @@ const isDeepEqual = require('lodash.isequal');
 const log = require('lighthouse-logger');
 const MessageFormat = require('intl-messageformat').default;
 const MessageParser = require('intl-messageformat-parser');
+const lookupClosestLocale = require('lookup-closest-locale');
 const LOCALES = require('./locales');
 
 const LH_ROOT = path.join(__dirname, '../../');
@@ -35,14 +36,23 @@ const MESSAGE_INSTANCE_ID_REGEX = /(.* \| .*) # (\d+)$/;
 
 
 const UIStrings = {
+/** Used to show the duration in milliseconds that something lasted. The `{timeInMs}` placeholder will be replaced with the time duration, shown in milliseconds (e.g. 63 ms) */
   ms: '{timeInMs, number, milliseconds}\xa0ms',
+  /** Label shown per-audit to show how many bytes smaller the page could be if the user implemented the suggestions. The `{wastedBytes}` placeholder will be replaced with the number of bytes, shown in kilobytes (e.g. 148 KB) */
   displayValueByteSavings: 'Potential savings of {wastedBytes, number, bytes}\xa0KB',
+  /** Label shown per-audit to show how many milliseconds faster the page load could be if the user implemented the suggestions. The `{wastedMs}` placeholder will be replaced with the time duration, shown in milliseconds (e.g. 140 ms) */
   displayValueMsSavings: 'Potential savings of {wastedMs, number, milliseconds}\xa0ms',
+  /** Label for the URL column in data tables, entries will be the URL of a web resource */
   columnURL: 'URL',
+  /** Label for the size column in data tables, entries will be the size of a web resource in kilobytes */
   columnSize: 'Size (KB)',
+  /** Label for the TTL column in data tables, entries will be the time to live value of the cache header on a web resource */
   columnCacheTTL: 'Cache TTL',
+  /** Label for the wasted bytes column in data tables, entries will be the number of kilobytes the user could reduce their page by if they implemented the suggestions */
   columnWastedBytes: 'Potential Savings (KB)',
+  /** Label for the wasted bytes column in data tables, entries will be the number of milliseconds the user could reduce page load by if they implemented the suggestions */
   columnWastedMs: 'Potential Savings (ms)',
+  /** Label for the time spent column in data tables, entries will be the number of milliseconds spent during a particular activity */
   columnTimeSpent: 'Time Spent',
 };
 
@@ -56,6 +66,24 @@ const formats = {
     },
   },
 };
+
+/**
+ * Look up the best available locale for the requested language through these fall backs:
+ * - exact match
+ * - progressively shorter prefixes (`de-CH-1996` -> `de-CH` -> `de`)
+ * - the default locale ('en') if no match is found
+ *
+ * If `locale` isn't provided, the default is used.
+ * @param {string=} locale
+ * @return {LH.Locale}
+ */
+function lookupLocale(locale) {
+  // TODO: could do more work to sniff out default locale
+  const canonicalLocale = Intl.getCanonicalLocales(locale)[0];
+
+  const closestLocale = lookupClosestLocale(canonicalLocale, LOCALES);
+  return closestLocale || 'en';
+}
 
 /**
  * @param {string} icuMessage
@@ -109,7 +137,7 @@ const _icuMessageInstanceMap = new Map();
  * @return {{formattedString: string, icuMessage: string}}
  */
 function _formatIcuMessage(locale, icuMessageId, icuMessage, values) {
-  const localeMessages = LOCALES[locale] || {};
+  const localeMessages = LOCALES[locale];
   const localeMessage = localeMessages[icuMessageId] && localeMessages[icuMessageId].message;
   // fallback to the original english message if we couldn't find a message in the specified locale
   // better to have an english message than no message at all, in some number cases it won't even matter
@@ -139,15 +167,6 @@ function _formatPathAsString(pathInLHR) {
   }
 
   return pathAsString;
-}
-
-/**
- * @return {LH.Locale}
- */
-function getDefaultLocale() {
-  const defaultLocale = MessageFormat.defaultLocale;
-  if (defaultLocale in LOCALES) return /** @type {LH.Locale} */ (defaultLocale);
-  return 'en-US';
 }
 
 /**
@@ -199,7 +218,7 @@ function createMessageInstanceIdFn(filename, fileStrings) {
 
 /**
  * @param {string} icuMessageIdOrRawString
- * @param {LH.Locale} [locale]
+ * @param {LH.Locale} locale
  * @return {string}
  */
 function getFormatted(icuMessageIdOrRawString, locale) {
@@ -212,10 +231,10 @@ function getFormatted(icuMessageIdOrRawString, locale) {
 
 /**
  * @param {string} icuMessageInstanceId
- * @param {LH.Locale} [locale]
+ * @param {LH.Locale} locale
  * @return {{icuMessageInstance: IcuMessageInstance, formattedString: string}}
  */
-function _resolveIcuMessageInstanceId(icuMessageInstanceId, locale = 'en-US') {
+function _resolveIcuMessageInstanceId(icuMessageInstanceId, locale) {
   const matches = icuMessageInstanceId.match(MESSAGE_INSTANCE_ID_REGEX);
   if (!matches) throw new Error(`${icuMessageInstanceId} is not a valid message instance ID`);
 
@@ -273,7 +292,7 @@ function replaceIcuMessageInstanceIds(lhr, locale) {
 module.exports = {
   _formatPathAsString,
   UIStrings,
-  getDefaultLocale,
+  lookupLocale,
   getRendererFormattedStrings,
   createMessageInstanceIdFn,
   getFormatted,
