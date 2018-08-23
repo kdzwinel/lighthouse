@@ -107,7 +107,6 @@ class Runner {
 
       // Entering: conclusion of the lighthouse result object
 
-      // @ts-ignore - Needs json require() support
       const lighthousePackageVersion = require('../package.json').version;
       const lighthouseChannel = process.env.LH_CHANNEL || 'nm';
 
