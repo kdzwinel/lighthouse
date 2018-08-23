@@ -20,11 +20,11 @@
 
 const ELLIPSIS = '\u2026';
 const NBSP = '\xa0';
-const PASS_THRESHOLD = 0.75;
+const PASS_THRESHOLD = 0.9;
 
 const RATINGS = {
   PASS: {label: 'pass', minScore: PASS_THRESHOLD},
-  AVERAGE: {label: 'average', minScore: 0.45},
+  AVERAGE: {label: 'average', minScore: 0.5},
   FAIL: {label: 'fail'},
   ERROR: {label: 'error'},
 };
@@ -223,6 +223,7 @@ class Util {
    * @return {string}
    */
   static formatDateTime(date) {
+    /** @type {Intl.DateTimeFormatOptions} */
     const options = {
       month: 'short', day: 'numeric', year: 'numeric',
       hour: 'numeric', minute: 'numeric', timeZoneName: 'short',
@@ -444,6 +445,10 @@ class Util {
  */
 Util.numberDateLocale = 'en';
 
+/**
+ * Report-renderer-specific strings.
+ * @type {LH.I18NRendererStrings}
+ */
 Util.UIStrings = {
   /** Disclaimer shown to users below the metric values (First Contentful Paint, Time to Interactive, etc) to warn them that the numbers they see will likely change slightly the next time they run Lighthouse. */
   varianceDisclaimer: 'Values are estimated and may vary.',

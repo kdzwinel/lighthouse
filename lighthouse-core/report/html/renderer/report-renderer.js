@@ -115,8 +115,14 @@ class ReportRenderer {
       {name: 'URL', description: report.finalUrl},
       {name: 'Fetch time', description: Util.formatDateTime(report.fetchTime)},
       ...envValues,
-      {name: 'User agent', description: report.userAgent},
+      {name: 'User agent (host)', description: report.userAgent},
+      {name: 'User agent (network)', description: report.environment &&
+        report.environment.networkUserAgent},
+      {name: 'CPU/Memory Power', description: report.environment &&
+        report.environment.benchmarkIndex.toFixed(0)},
     ].forEach(runtime => {
+      if (!runtime.description) return;
+
       const item = this._dom.cloneTemplate('#tmpl-lh-env__items', env);
       this._dom.find('.lh-env__name', item).textContent = `${runtime.name}:`;
       this._dom.find('.lh-env__description', item).textContent = runtime.description;
@@ -165,7 +171,6 @@ class ReportRenderer {
       header = this._renderReportHeader(report);
     }
     headerContainer.appendChild(header);
-    const scoresContainer = this._dom.find('.lh-scores-container', headerContainer);
 
     const container = this._dom.createElement('div', 'lh-container');
     const reportSection = container.appendChild(this._dom.createElement('div', 'lh-report'));
@@ -210,6 +215,7 @@ class ReportRenderer {
       const scoreScale = this._dom.cloneTemplate('#tmpl-lh-scorescale', this._templateContext);
       this._dom.find('.lh-scorescale-label', scoreScale).textContent =
         Util.UIStrings.scorescaleLabel;
+      const scoresContainer = this._dom.find('.lh-scores-container', headerContainer);
       scoresContainer.appendChild(scoreHeader);
       scoresContainer.appendChild(scoreScale);
     }

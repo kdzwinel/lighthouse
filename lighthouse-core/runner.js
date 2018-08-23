@@ -127,7 +127,12 @@ class Runner {
 
       /** @type {LH.Result} */
       const lhr = {
-        userAgent: artifacts.UserAgent,
+        userAgent: artifacts.HostUserAgent,
+        environment: {
+          networkUserAgent: artifacts.NetworkUserAgent,
+          hostUserAgent: artifacts.HostUserAgent,
+          benchmarkIndex: artifacts.BenchmarkIndex,
+        },
         lighthouseVersion,
         fetchTime: artifacts.fetchTime,
         requestedUrl: requestedUrl,
@@ -373,6 +378,7 @@ class Runner {
       const ArtifactClass = require('./gather/computed/' + filename);
       const artifact = new ArtifactClass(computedArtifacts);
       // define the request* function that will be exposed on `artifacts`
+      // @ts-ignore - doesn't have an index signature, so can't be set dynamically.
       computedArtifacts['request' + artifact.name] = artifact.request.bind(artifact);
     });
 
