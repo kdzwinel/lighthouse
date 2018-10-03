@@ -133,6 +133,13 @@ describe('DOM', () => {
       });
       assert.equal(result.innerHTML, '<a rel="noopener" target="_blank" href="https://developers.google.com/web/tools/lighthouse/audits/description?utm_source=lighthouse&amp;utm_medium=ext&amp;utm_content=fail">Learn more</a>.');
     });
+
+    it('doesn\'t append utm params to non https://developers.google.com origins', () => {
+      const text = '[Learn more](https://example.com/info).';
+
+      const result = dom.convertMarkdownLinkSnippets(text);
+      assert.equal(result.innerHTML, '<a rel="noopener" target="_blank" href="https://example.com/info">Learn more</a>.');
+    });
   });
 
   describe('convertMarkdownCodeSnippets', () => {
