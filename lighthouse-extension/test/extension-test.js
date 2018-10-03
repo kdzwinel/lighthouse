@@ -47,6 +47,12 @@ describe('Lighthouse chrome extension', function() {
       });
   }
 
+  function getLearnMoreURLForIsOnHTTPS() {
+    return extensionPage.evaluate(() => {
+      return document.querySelector("#is-on-https .lh-audit__description a").href
+    })
+  }
+
   before(async function() {
     // eslint-disable-next-line
     this.timeout(90 * 1000);
@@ -174,5 +180,12 @@ describe('Lighthouse chrome extension', function() {
   it('should pass the is-crawlable audit', async () => {
     // this audit has regressed in the extension twice, so make sure it passes
     assert.ok(await extensionPage.$('#is-crawlable.lh-audit--pass'), 'did not pass is-crawlable');
+  });
+
+  it('should include UTM params in documentation URLs', async () => {
+    const url = await getLearnMoreURLForIsOnHTTPS()
+    assert.ok(url.includes("utm_medium=ext"), 'Incorrect or missing utm_medium parameter');
+    assert.ok(url.includes("utm_source=lighthouse"), 'Incorrect or missing utm_source parameter');
+    assert.ok(url.includes("utm_content=pass"), 'Incorrect or missing utm_content parameter');
   });
 });
