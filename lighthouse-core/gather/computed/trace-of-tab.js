@@ -19,12 +19,25 @@
 const ComputedArtifact = require('./computed-artifact');
 const log = require('lighthouse-logger');
 const TracingProcessor = require('../../lib/traces/tracing-processor');
-const LHError = require('../../lib/errors');
+const LHError = require('../../lib/lh-error');
 const Sentry = require('../../lib/sentry');
+
+const ACCEPTABLE_NAVIGATION_URL_REGEX = /^(chrome|https?):/;
 
 class TraceOfTab extends ComputedArtifact {
   get name() {
     return 'TraceOfTab';
+  }
+
+  /**
+   * Returns true if the event is a navigation start event of a document whose URL seems valid.
+   *
+   * @param {LH.TraceEvent} event
+   */
+  static isNavigationStartOfInterest(event) {
+    return event.name === 'navigationStart' &&
+      (!event.args.data || !event.args.data.documentLoaderURL ||
+        ACCEPTABLE_NAVIGATION_URL_REGEX.test(event.args.data.documentLoaderURL));
   }
 
   /**
@@ -79,7 +92,7 @@ class TraceOfTab extends ComputedArtifact {
     const frameEvents = keyEvents.filter(e => e.args.frame === frameId);
 
     // Our navStart will be the last frame navigation in the trace
-    const navigationStart = frameEvents.filter(e => e.name === 'navigationStart').pop();
+    const navigationStart = frameEvents.filter(TraceOfTab.isNavigationStartOfInterest).pop();
     if (!navigationStart) throw new LHError(LHError.errors.NO_NAVSTART);
 
     // Find our first paint of this frame
@@ -103,7 +116,6 @@ class TraceOfTab extends ComputedArtifact {
     // However, if no candidates were found (a bogus trace, likely), we fail.
     if (!firstMeaningfulPaint) {
       // Track this with Sentry since it's likely a bug we should investigate.
-      // @ts-ignore TODO(bckenny): Sentry type checking
       Sentry.captureMessage('No firstMeaningfulPaint found, using fallback', {level: 'warning'});
 
       const fmpCand = 'firstMeaningfulPaintCandidate';

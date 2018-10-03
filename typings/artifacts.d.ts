@@ -125,15 +125,12 @@ declare global {
       requestCriticalRequestChains(data: {devtoolsLog: DevtoolsLog, URL: Artifacts['URL']}): Promise<Artifacts.CriticalRequestNode>;
       requestLoadSimulator(data: {devtoolsLog: DevtoolsLog, settings: Config.Settings}): Promise<LanternSimulator>;
       requestMainResource(data: {devtoolsLog: DevtoolsLog, URL: Artifacts['URL']}): Promise<Artifacts.NetworkRequest>;
-      requestManifestValues(manifest: LH.Artifacts['Manifest']): Promise<LH.Artifacts.ManifestValues>;
       requestNetworkAnalysis(devtoolsLog: DevtoolsLog): Promise<LH.Artifacts.NetworkAnalysis>;
-      requestNetworkThroughput(devtoolsLog: DevtoolsLog): Promise<number>;
       requestNetworkRecords(devtoolsLog: DevtoolsLog): Promise<Artifacts.NetworkRequest[]>;
       requestPageDependencyGraph(data: {trace: Trace, devtoolsLog: DevtoolsLog}): Promise<Gatherer.Simulation.GraphNode>;
       requestPushedRequests(devtoolsLogs: DevtoolsLog): Promise<Artifacts.NetworkRequest[]>;
       requestMainThreadTasks(trace: Trace): Promise<Artifacts.TaskNode[]>;
       requestTraceOfTab(trace: Trace): Promise<Artifacts.TraceOfTab>;
-      requestScreenshots(trace: Trace): Promise<{timestamp: number, datauri: string}[]>;
       requestSpeedline(trace: Trace): Promise<LH.Artifacts.Speedline>;
 
       // Metrics.
@@ -352,6 +349,7 @@ declare global {
       }
 
       export interface NetworkAnalysis {
+        records: Array<NetworkRequest>;
         rtt: number;
         additionalRttByOrigin: Map<string, number>;
         serverResponseTimeByOrigin: Map<string, number>;

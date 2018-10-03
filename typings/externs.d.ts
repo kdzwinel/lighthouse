@@ -4,9 +4,8 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-import _Crdp from 'vscode-chrome-debug-core/lib/crdp/crdp';
-import _StrictEventEmitter from '../third-party/strict-event-emitter-types/index';
-import { EventEmitter } from 'events';
+import _Crdp from 'devtools-protocol/types/protocol';
+import _CrdpMappings from 'devtools-protocol/types/protocol-mapping'
 
 declare global {
   // Augment global Error type to include node's optional `code` property
@@ -50,13 +49,13 @@ declare global {
 
   /** Obtain the type of the first parameter of a function. */
   type FirstParamType<T extends (arg1: any, ...args: any[]) => any> =
-    T extends (arg1: infer P, ...args: any[]) => any ? P : any;
+    T extends (arg1: infer P, ...args: any[]) => any ? P : never;
 
   module LH {
     // re-export useful type modules under global LH module.
     export import Crdp = _Crdp;
-    export type StrictEventEmitter<TEventRecord, TEmitterType = EventEmitter, TEmitRecord = TEventRecord> =
-      _StrictEventEmitter<TEmitterType, TEventRecord, TEmitRecord>;
+    export import CrdpEvents = _CrdpMappings.Events;
+    export import CrdpCommands = _CrdpMappings.Commands;
 
     interface ThrottlingSettings {
       // simulation settings
@@ -70,10 +69,14 @@ declare global {
       cpuSlowdownMultiplier?: number
     }
 
-    export type Locale = 'en-US'|'en'|'en-AU'|'en-GB'|'en-IE'|'en-SG'|'en-ZA'|'en-IN'|'ar-XB'|'ar'|'bg'|'bs'|'ca'|'cs'|'da'|'de'|'el'|'en-XA'|'es'|'fi'|'fil'|'fr'|'he'|'hi'|'hr'|'hu'|'gsw'|'id'|'in'|'it'|'iw'|'ja'|'ko'|'lt'|'lv'|'mo'|'nl'|'nb'|'no'|'pl'|'pt'|'pt-PT'|'ro'|'ru'|'sk'|'sl'|'sr'|'sr-Latn'|'sv'|'ta'|'te'|'th'|'tl'|'tr'|'uk'|'vi'|'zh'|'zh-HK'|'zh-TW';
+    export type Locale = 'en-US'|'en'|'en-AU'|'en-GB'|'en-IE'|'en-SG'|'en-ZA'|'en-IN'|'ar-XB'|'ar'|'bg'|'bs'|'ca'|'cs'|'da'|'de'|'el'|'en-XA'|'es'|'fi'|'fil'|'fr'|'he'|'hi'|'hr'|'hu'|'gsw'|'id'|'in'|'it'|'iw'|'ja'|'ko'|'ln'|'lt'|'lv'|'mo'|'nl'|'nb'|'no'|'pl'|'pt'|'pt-PT'|'ro'|'ru'|'sk'|'sl'|'sr'|'sr-Latn'|'sv'|'ta'|'te'|'th'|'tl'|'tr'|'uk'|'vi'|'zh'|'zh-HK'|'zh-TW';
 
     export type OutputMode = 'json' | 'html' | 'csv';
 
+    /**
+     * Options that are found in both the flags used by the Lighthouse module
+     * interface and the Config's `settings` object.
+     */
     interface SharedFlagsSettings {
       output?: OutputMode|OutputMode[];
       locale?: Locale;
@@ -84,6 +87,7 @@ declare global {
       gatherMode?: boolean | string;
       disableStorageReset?: boolean;
       disableDeviceEmulation?: boolean;
+      emulatedFormFactor?: 'mobile'|'desktop'|'none';
       throttlingMethod?: 'devtools'|'simulate'|'provided';
       throttling?: ThrottlingSettings;
       onlyAudits?: string[] | null;
@@ -92,6 +96,10 @@ declare global {
       extraHeaders?: Crdp.Network.Headers | null; // See extraHeaders TODO in bin.js
     }
 
+    /**
+     * Extends the flags in SharedFlagsSettings with flags used to configure the
+     * Lighthouse module but will not end up in the Config settings.
+     */
     export interface Flags extends SharedFlagsSettings {
       port?: number;
       hostname?: string;
@@ -100,8 +108,8 @@ declare global {
     }
 
     /**
-     * Flags accepted by Lighthouse, plus additional flags just
-     * for controlling the CLI.
+     * Extends the flags accepted by the Lighthouse module with additional flags
+     * used just for controlling the CLI.
      */
     export interface CliFlags extends Flags {
       _: string[];
@@ -115,10 +123,11 @@ declare global {
       preset?: 'full'|'mixed-content'|'perf';
       verbose: boolean;
       quiet: boolean;
-      // following are given defaults in cli-flags, so not optional like in Flags or SharedFlagsSettings
+      // following are given defaults in cli-flags, so are not optional like in Flags or SharedFlagsSettings
       output: OutputMode[];
       port: number;
       hostname: string;
+      printConfig: boolean;
     }
 
     export interface RunnerResult {
@@ -166,6 +175,7 @@ declare global {
         fileName?: string;
         snapshot?: string;
         data?: {
+          documentLoaderURL?: string;
           frames?: {
             frame: string;
             parent?: string;

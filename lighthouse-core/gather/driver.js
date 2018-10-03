@@ -8,11 +8,10 @@
 const NetworkRecorder = require('../lib/network-recorder');
 const emulation = require('../lib/emulation');
 const Element = require('../lib/element');
-const LHError = require('../lib/errors');
+const LHError = require('../lib/lh-error');
 const NetworkRequest = require('../lib/network-request');
 const EventEmitter = require('events').EventEmitter;
 const URL = require('../lib/url-shim');
-const TraceParser = require('../lib/traces/trace-parser');
 const constants = require('../config/constants');
 
 const log = require('lighthouse-logger');
@@ -32,7 +31,7 @@ const DEFAULT_NETWORK_QUIET_THRESHOLD = 5000;
 const DEFAULT_CPU_QUIET_THRESHOLD = 0;
 
 /**
- * @typedef {LH.StrictEventEmitter<LH.CrdpEvents>} CrdpEventEmitter
+ * @typedef {LH.Protocol.StrictEventEmitter<LH.CrdpEvents>} CrdpEventEmitter
  */
 
 class Driver {
@@ -43,9 +42,8 @@ class Driver {
     this._traceCategories = Driver.traceCategories;
     /**
      * An event emitter that enforces mapping between Crdp event names and payload types.
-     * @type {CrdpEventEmitter}
      */
-    this._eventEmitter = new EventEmitter();
+    this._eventEmitter = /** @type {CrdpEventEmitter} */ (new EventEmitter());
     this._connection = connection;
     // currently only used by WPT where just Page and Network are needed
     this._devtoolsLog = new DevtoolsLog(/^(Page|Network)\./);
@@ -74,6 +72,10 @@ class Driver {
       if (this._networkStatusMonitor) {
         this._networkStatusMonitor.dispatch(event);
       }
+
+      // @ts-ignore TODO(bckenny): tsc can't type event.params correctly yet,
+      // typing as property of union instead of narrowing from union of
+      // properties. See https://github.com/Microsoft/TypeScript/pull/22348.
       this._eventEmitter.emit(event.method, event.params);
     });
   }
@@ -112,7 +114,7 @@ class Driver {
    * @return {Promise<number>}
    */
   getBenchmarkIndex() {
-    return this.evaluateAsync(`(${pageFunctions.ultradumbBenchmark.toString()})()`);
+    return this.evaluateAsync(`(${pageFunctions.ultradumbBenchmarkString})()`);
   }
 
   /**
@@ -136,6 +138,52 @@ class Driver {
    */
   wsEndpoint() {
     return this._connection.wsEndpoint();
+  }
+
+  /**
+   * Bind listeners for protocol events.
+   * @template {keyof LH.CrdpEvents} E
+   * @param {E} eventName
+   * @param {(...args: LH.CrdpEvents[E]) => void} cb
+   */
+  on(eventName, cb) {
+    if (this._eventEmitter === null) {
+      throw new Error('connect() must be called before attempting to listen to events.');
+    }
+
+    // log event listeners being bound
+    log.formatProtocol('listen for event =>', {method: eventName}, 'verbose');
+    this._eventEmitter.on(eventName, cb);
+  }
+
+  /**
+   * Bind a one-time listener for protocol events. Listener is removed once it
+   * has been called.
+   * @template {keyof LH.CrdpEvents} E
+   * @param {E} eventName
+   * @param {(...args: LH.CrdpEvents[E]) => void} cb
+   */
+  once(eventName, cb) {
+    if (this._eventEmitter === null) {
+      throw new Error('connect() must be called before attempting to listen to events.');
+    }
+    // log event listeners being bound
+    log.formatProtocol('listen once for event =>', {method: eventName}, 'verbose');
+    this._eventEmitter.once(eventName, cb);
+  }
+
+  /**
+   * Unbind event listener.
+   * @template {keyof LH.CrdpEvents} E
+   * @param {E} eventName
+   * @param {Function} cb
+   */
+  off(eventName, cb) {
+    if (this._eventEmitter === null) {
+      throw new Error('connect() must be called before attempting to remove an event listener.');
+    }
+
+    this._eventEmitter.removeListener(eventName, cb);
   }
 
   /**
@@ -165,6 +213,25 @@ class Driver {
       }
       return false;
     }
+  }
+
+  /**
+   * Call protocol methods.
+   * @template {keyof LH.CrdpCommands} C
+   * @param {C} method
+   * @param {LH.CrdpCommands[C]['paramsType']} params,
+   * @return {Promise<LH.CrdpCommands[C]['returnType']>}
+   */
+  sendCommand(method, ...params) {
+    const domainCommand = /^(\w+)\.(enable|disable)$/.exec(method);
+    if (domainCommand) {
+      const enable = domainCommand[2] === 'enable';
+      if (!this._shouldToggleDomain(domainCommand[1], enable)) {
+        return Promise.resolve();
+      }
+    }
+
+    return this._connection.sendCommand(method, ...params);
   }
 
   /**
@@ -234,7 +301,7 @@ class Driver {
           return new __nativePromise(function (resolve) {
             return __nativePromise.resolve()
               .then(_ => ${expression})
-              .catch(${pageFunctions.wrapRuntimeEvalErrorInBrowser.toString()})
+              .catch(${pageFunctions.wrapRuntimeEvalErrorInBrowserString})
               .then(resolve);
           });
         }())`,
@@ -244,15 +311,23 @@ class Driver {
         contextId,
       };
 
-      this.sendCommand('Runtime.evaluate', evaluationParams).then(result => {
+      this.sendCommand('Runtime.evaluate', evaluationParams).then(response => {
         clearTimeout(asyncTimeout);
-        const value = result.result.value;
 
-        if (result.exceptionDetails) {
+        if (response.exceptionDetails) {
           // An error occurred before we could even create a Promise, should be *very* rare
-          reject(new Error('an unexpected driver error occurred'));
-        } if (value && value.__failedInBrowser) {
-          reject(Object.assign(new Error(), value));
+          return reject(new Error(`Evaluation exception: ${response.exceptionDetails.text}`));
+        }
+
+        // Protocol should always return a 'result' object, but it is sometimes undefined.  See #6026.
+        if (response.result === undefined) {
+          return reject(new Error('Runtime.evaluate response did not contain a "result" object'));
+        }
+
+        const value = response.result.value;
+
+        if (value && value.__failedInBrowser) {
+          return reject(Object.assign(new Error(), value));
         } else {
           resolve(value);
         }
@@ -445,7 +520,7 @@ class Driver {
     let lastTimeout;
     let cancelled = false;
 
-    const checkForQuietExpression = `(${pageFunctions.checkTimeSinceLastLongTask.toString()})()`;
+    const checkForQuietExpression = `(${pageFunctions.checkTimeSinceLastLongTaskString})()`;
     /**
      * @param {Driver} driver
      * @param {() => void} resolve
@@ -863,83 +938,35 @@ class Driver {
 
     // Enable Page domain to wait for Page.loadEventFired
     return this.sendCommand('Page.enable')
-      // ensure tracing is stopped before we can start
-      // see https://github.com/GoogleChrome/lighthouse/issues/1091
-      .then(_ => this.endTraceIfStarted())
       .then(_ => this.sendCommand('Tracing.start', {
         categories: uniqueCategories.join(','),
-        transferMode: 'ReturnAsStream',
         options: 'sampling-frequency=10000', // 1000 is default and too slow.
       }));
-  }
-
-  /**
-   * @return {Promise<void>}
-   */
-  endTraceIfStarted() {
-    return new Promise((resolve) => {
-      const traceCallback = () => resolve();
-      this.once('Tracing.tracingComplete', traceCallback);
-      return this.sendCommand('Tracing.end', undefined, {silent: true}).catch(() => {
-        this.off('Tracing.tracingComplete', traceCallback);
-        traceCallback();
-      });
-    });
   }
 
   /**
    * @return {Promise<LH.Trace>}
    */
   endTrace() {
+    /** @type {Array<LH.TraceEvent>} */
+    const traceEvents = [];
+
+    /**
+     * Listener for when dataCollected events fire for each trace chunk
+     * @param {LH.Crdp.Tracing.DataCollectedEvent} data
+     */
+    const dataListener = function(data) {
+      traceEvents.push(...data.value);
+    };
+    this.on('Tracing.dataCollected', dataListener);
+
     return new Promise((resolve, reject) => {
-      // When the tracing has ended this will fire with a stream handle.
-      this.once('Tracing.tracingComplete', completeEvent => {
-        this._readTraceFromStream(completeEvent)
-            .then(traceContents => resolve(traceContents), reject);
+      this.once('Tracing.tracingComplete', _ => {
+        this.off('Tracing.dataCollected', dataListener);
+        resolve({traceEvents});
       });
 
-      // Issue the command to stop tracing.
       return this.sendCommand('Tracing.end').catch(reject);
-    });
-  }
-
-  /**
-   * @param {LH.Crdp.Tracing.TracingCompleteEvent} traceCompleteEvent
-   * @return {Promise<LH.Trace>}
-   */
-  _readTraceFromStream(traceCompleteEvent) {
-    return new Promise((resolve, reject) => {
-      let isEOF = false;
-      const parser = new TraceParser();
-
-      if (!traceCompleteEvent.stream) {
-        return reject('No streamHandle returned by traceCompleteEvent');
-      }
-
-      const readArguments = {
-        handle: traceCompleteEvent.stream,
-      };
-
-      /**
-       * @param {LH.Crdp.IO.ReadResponse} response
-       * @return {void|Promise<void>}
-       */
-      const onChunkRead = response => {
-        if (isEOF) {
-          return;
-        }
-
-        parser.parseChunk(response.data);
-
-        if (response.eof) {
-          isEOF = true;
-          return resolve(parser.getTrace());
-        }
-
-        return this.sendCommand('IO.read', readArguments).then(onChunkRead);
-      };
-
-      this.sendCommand('IO.read', readArguments).then(onChunkRead).catch(reject);
     });
   }
 
@@ -972,8 +999,13 @@ class Driver {
    * @return {Promise<void>}
    */
   async beginEmulation(settings) {
+    // TODO(phulce): remove this flag on next breaking change
     if (!settings.disableDeviceEmulation) {
-      await emulation.enableNexus5X(this);
+      if (settings.emulatedFormFactor === 'mobile') {
+        await emulation.enableNexus5X(this);
+      } else if (settings.emulatedFormFactor === 'desktop') {
+        await emulation.enableDesktop(this);
+      }
     }
 
     await this.setThrottling(settings, {useThrottling: true});
@@ -1086,7 +1118,7 @@ class Driver {
    * @return {Promise<void>}
    */
   async registerPerformanceObserver() {
-    const scriptStr = `(${pageFunctions.registerPerformanceObserverInPage.toString()})()`;
+    const scriptStr = `(${pageFunctions.registerPerformanceObserverInPageString})()`;
     await this.evaluateScriptOnNewDocument(scriptStr);
   }
 
@@ -1123,82 +1155,5 @@ class Driver {
     });
   }
 }
-
-// Declared outside class body because function expressions can be typed via more expressive @type
-/**
- * Bind listeners for protocol events.
- * @type {CrdpEventEmitter['on']}
- */
-Driver.prototype.on = function on(eventName, cb) {
-  if (this._eventEmitter === null) {
-    throw new Error('connect() must be called before attempting to listen to events.');
-  }
-
-  // log event listeners being bound
-  log.formatProtocol('listen for event =>', {method: eventName}, 'verbose');
-  this._eventEmitter.on(eventName, cb);
-};
-
-/**
- * Bind a one-time listener for protocol events. Listener is removed once it
- * has been called.
- * @type {CrdpEventEmitter['once']}
- */
-Driver.prototype.once = function once(eventName, cb) {
-  if (this._eventEmitter === null) {
-    throw new Error('connect() must be called before attempting to listen to events.');
-  }
-  // log event listeners being bound
-  log.formatProtocol('listen once for event =>', {method: eventName}, 'verbose');
-  this._eventEmitter.once(eventName, cb);
-};
-
-/**
- * Unbind event listener.
- * @type {CrdpEventEmitter['removeListener']}
- */
-Driver.prototype.off = function off(eventName, cb) {
-  if (this._eventEmitter === null) {
-    throw new Error('connect() must be called before attempting to remove an event listener.');
-  }
-
-  this._eventEmitter.removeListener(eventName, cb);
-};
-
-/** @typedef {LH.CrdpCommands[keyof LH.CrdpCommands]['returnType']} CommandReturnTypes */
-
-/**
- * Loosely-typed internal implementation of `Driver.sendCommand` which is
- * strictly typed externally on exposed Driver interface. Type tightening occurs
- * when assigned to `Driver.prototype` below and typed with
- * `LH.Protocol.SendCommand`.
- * Necessitated by `params` only being optional for some values of `method`.
- * See https://github.com/Microsoft/TypeScript/issues/5453 for needed variadic
- * primitive.
- * @this {Driver}
- * @param {any} method
- * @param {any=} params,
- * @param {{silent?: boolean}=} cmdOpts
- * @return {Promise<CommandReturnTypes>}
- */
-function _sendCommand(method, params, cmdOpts = {}) {
-  const domainCommand = /^(\w+)\.(enable|disable)$/.exec(method);
-  if (domainCommand) {
-    const enable = domainCommand[2] === 'enable';
-    // eslint-disable-next-line no-invalid-this
-    if (!this._shouldToggleDomain(domainCommand[1], enable)) {
-      return Promise.resolve();
-    }
-  }
-
-  // eslint-disable-next-line no-invalid-this
-  return this._connection.sendCommand(method, params, cmdOpts);
-}
-
-/**
- * Call protocol methods.
- * @type {LH.Protocol.SendCommand}
- */
-Driver.prototype.sendCommand = _sendCommand;
 
 module.exports = Driver;

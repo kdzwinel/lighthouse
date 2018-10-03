@@ -114,7 +114,7 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
   /**
    * @param {LH.ReportResult.Category} category
    * @param {Object<string, LH.Result.ReportGroup>} groups
-   * @param {string=} environment 'PSI' and undefined are the only valid values
+   * @param {'PSI'=} environment 'PSI' and undefined are the only valid values
    * @return {Element}
    * @override
    */
@@ -131,7 +131,7 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
 
     // Metrics
     const metricAudits = category.auditRefs.filter(audit => audit.group === 'metrics');
-    const metricAuditsEl = this.renderAuditGroup(groups['metrics'], {expandable: false});
+    const metricAuditsEl = this.renderAuditGroup(groups.metrics, {expandable: false});
 
     const keyMetrics = metricAudits.filter(a => a.weight >= 3);
     const otherMetrics = metricAudits.filter(a => a.weight < 3);
@@ -146,9 +146,13 @@ class PerformanceCategoryRenderer extends CategoryRenderer {
     otherMetrics.forEach(item => {
       metricsColumn2El.appendChild(this._renderMetric(item));
     });
-    const estValuesEl = this.dom.createChildOf(metricsColumn2El, 'div',
-        'lh-metrics__disclaimer lh-metrics__disclaimer');
-    estValuesEl.textContent = Util.UIStrings.varianceDisclaimer;
+
+    // 'Values are estimated and may vary' is used as the category description for PSI
+    if (environment !== 'PSI') {
+      const estValuesEl = this.dom.createChildOf(metricsColumn2El, 'div',
+          'lh-metrics__disclaimer lh-metrics__disclaimer');
+      estValuesEl.textContent = Util.UIStrings.varianceDisclaimer;
+    }
 
     metricAuditsEl.classList.add('lh-audit-group--metrics');
     element.appendChild(metricAuditsEl);

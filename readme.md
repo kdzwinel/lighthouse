@@ -10,7 +10,7 @@ Lighthouse is integrated directly into the Chrome Developer Tools, under the "Au
 
 **Run it**: open Chrome DevTools, select the Audits panel, and hit "Run audits".
 
-<img width="500px" alt="Lighthouse integration in Chrome DevTools" src="https://user-images.githubusercontent.com/2301202/40556658-4ef7d128-6002-11e8-903e-5224894a7cca.png">
+<img src="https://raw.githubusercontent.com/GoogleChrome/lighthouse/e7997b3db01de3553d8cb208a40f3d4fd350195c/assets/example_dev_tools.png" alt="Lighthouse integration in Chrome DevTools" width="500px">
 
 ## Using the Chrome extension
 
@@ -46,9 +46,10 @@ Logging:
   --quiet    Displays no progress, debug logs or errors                                                                                    [boolean]
 
 Configuration:
-  --save-assets                  Save the trace contents & screenshots to disk                                                             [boolean]
+  --save-assets                  Save the trace & devtools log to disk                                                                     [boolean]
   --list-all-audits              Prints a list of all available audits and exits                                                           [boolean]
   --list-trace-categories        Prints a list of all required trace categories and exits                                                  [boolean]
+  --print-config                 Print the normalized config for the given config and options, then exit.                                  [boolean]
   --additional-trace-categories  Additional categories to capture with the trace (comma-delimited).
   --config-path                  The path to the config JSON.
   --chrome-flags                 Custom flags to pass to Chrome (space-delimited). For a full list of flags, see
@@ -63,6 +64,7 @@ Configuration:
   --hostname                     The hostname to use for the debugging protocol.                                              [default: "localhost"]
   --max-wait-for-load            The timeout (in milliseconds) to wait before the page is considered done loading and the run should continue.
                                  WARNING: Very high values can lead to large traces and instability                                 [default: 45000]
+  --emulated-form-factor         Controls the emulated device form factor (mobile vs. desktop) if not disabled                      [choices: "mobile", "desktop", "none"] [default: "mobile"]
   --enable-error-reporting       Enables error reporting, overriding any saved preference. --no-enable-error-reporting will do the opposite. More:
                                  https://git.io/vFFTO
   --gather-mode, -G              Collect artifacts from a connected browser and save to disk. If audit-mode is not also enabled, the run will quit
@@ -83,7 +85,7 @@ Options:
   --version                     Show version number                                                                                        [boolean]
   --blocked-url-patterns        Block any network requests to the specified URL patterns                                                     [array]
   --disable-storage-reset       Disable clearing the browser cache and other storage APIs before a run                                     [boolean]
-  --disable-device-emulation    Disable Nexus 5X emulation                                                                                 [boolean]
+  --disable-device-emulation    Disable all device form factor emulation. Deprecated: use --emulated-form-factor=none instead              [boolean]
   --throttling-method                  Controls throttling method         [choices: "devtools", "provided", "simulate"]
   --throttling.rttMs                   Controls simulated network RTT (TCP layer)
   --throttling.throughputKbps          Controls simulated network download throughput
@@ -97,7 +99,7 @@ Examples:
   lighthouse <url> --view                                                   Opens the HTML report in a browser after the run completes
   lighthouse <url> --config-path=./myconfig.js                              Runs Lighthouse with your own configuration: custom audits, report
                                                                             generation, etc.
-  lighthouse <url> --output=json --output-path=./report.json --save-assets  Save trace, screenshots, and named JSON report.
+  lighthouse <url> --output=json --output-path=./report.json --save-assets  Save trace, devtoolslog, and named JSON report.
   lighthouse <url> --disable-device-emulation                               Disable device emulation and all throttling.
     --throttling-method=provided
   lighthouse <url> --chrome-flags="--window-size=412,732"                   Launch Chrome with a specific window size
@@ -129,7 +131,7 @@ lighthouse --output json --output html
 
 lighthouse --output-path=~/mydir/foo.out --save-assets
 # saves `~/mydir/foo.report.html`
-# saves `~/mydir/foo-0.trace.json` and `~/mydir/foo-0.screenshots.html`
+# saves `~/mydir/foo-0.trace.json` and `~/mydir/foo-0.devtoolslog.json`
 
 lighthouse --output-path=./report.json --output json
 # saves `./report.json`
@@ -164,7 +166,7 @@ Lighthouse can produce a report as JSON or HTML.
 
 HTML report:
 
-![Lighthouse report](https://user-images.githubusercontent.com/2301202/40556754-b9361c66-6002-11e8-8957-68c7bac85fa4.png)
+<img src="https://raw.githubusercontent.com/GoogleChrome/lighthouse/443ff2c8a297dfd2297dfaca86c4966a87c8574a/assets/example_audit.png" alt="Lighthouse example audit" width="500px">
 
 ### Online Viewer
 
@@ -230,9 +232,10 @@ yarn build-all
 
 ```sh
 node lighthouse-cli http://example.com
+# append --chrome-flags="--no-sandbox --headless --disable-gpu" if you run into problems connecting to Chrome
 ```
 
-> **Getting started tip**: `node --inspect --debug-brk lighthouse-cli http://example.com` to open up Chrome DevTools and step
+> **Getting started tip**: `node --inspect-brk lighthouse-cli http://example.com` to open up Chrome DevTools and step
 through the entire app. See [Debugging Node.js with Chrome
 DevTools](https://medium.com/@paul_irish/debugging-node-js-nightlies-with-chrome-devtools-7c4a1b95ae27#.59rma3ukm)
 for more info.
@@ -279,12 +282,14 @@ Other awesome open source projects that use Lighthouse.
 * **[lighthouse-hue](https://github.com/ebidel/lighthouse-hue)** - set the color of Philips Hue lights based on a Lighthouse score
    * **[lighthouse-magic-light](https://github.com/manekinekko/lighthouse-magic-light)** set the color of the MagicLight Bluetooth Smart Light Bulb based on Lighthouse score
 * **[lighthouse-batch](https://www.npmjs.com/package/lighthouse-batch)** - run Lighthouse over a number of sites and generate a summary of their metrics/scores.
+* **[lighthouse-badges](https://github.com/emazzotta/lighthouse-badges)** - Generate gh-badges (shields.io) based on Lighthouse performance.
 * **[lighthouse-cron](https://github.com/thearegee/lighthouse-cron)** - Cron multiple batch Lighthouse audits and emit results for sending to remote server.
 * **[lightcrawler](https://github.com/github/lightcrawler)** - Crawl a website and run each page found through Lighthouse.
 * **[lighthouse-lambda](https://github.com/joytocode/lighthouse-lambda)** - Run Lighthouse on AWS Lambda with prebuilt stable desktop Headless Chrome.
 * **[lighthouse-security](https://github.com/voorhoede/lighthouse-security#readme)** - Run a set of security audits along with Lighthouse.
 * **[Garie](https://github.com/boyney123/garie)** — An open source tool for monitoring performance using Lighthouse,  PageSpeed Insights, [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/) and [Docker](https://www.docker.com/).
 * **[lighthouse-ci](https://github.com/andreasonny83/lighthouse-ci)** - Run Lighthouse and assert scores satisfy your custom thresholds.
+* **[lighthouse4u](https://github.com/godaddy/lighthouse4u)** - LH4U provides Google Lighthouse as a service, surfaced by both a friendly UI+API, and backed by Elastic Search for easy querying and visualization.
 
 ## FAQ
 
@@ -328,9 +333,8 @@ We'd love help writing audits, fixing bugs, and making the tool more useful!
 See [Contributing](./CONTRIBUTING.md) to get started.
 
 ---
-
 <p align="center">
-  <img src="https://cloud.githubusercontent.com/assets/39191/22478294/23f662f6-e79e-11e6-8de3-ffd7be7bf628.png" alt="Lighthouse logo" height="150">
+  <img src="https://raw.githubusercontent.com/GoogleChrome/lighthouse/8b3d7f052b2e64dd857e741d7395647f487697e7/assets/lighthouse-logo.png" alt="Lighthouse logo" height="150">
   <br>
   <b>Lighthouse</b>, ˈlītˌhous (n): a <s>tower or other structure</s> tool containing a beacon light
   to warn or guide <s>ships at sea</s> developers.

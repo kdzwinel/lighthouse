@@ -8,7 +8,7 @@
 const Audit = require('../audit');
 const linearInterpolation = require('../../lib/statistics').linearInterpolation;
 const Interactive = require('../../gather/computed/metrics/lantern-interactive');
-const i18n = require('../../lib/i18n');
+const i18n = require('../../lib/i18n/i18n.js');
 
 const str_ = i18n.createMessageInstanceIdFn(__filename, {});
 
@@ -54,16 +54,6 @@ class UnusedBytes extends Audit {
         linearInterpolation(WASTED_MS_FOR_POOR, 0.5, WASTED_MS_FOR_SCORE_OF_ZERO, 0, wastedMs)
       );
     }
-  }
-
-  /**
-   * @param {number} bytes
-   * @param {number} networkThroughput measured in bytes/second
-   * @return {number}
-   */
-  static bytesToMs(bytes, networkThroughput) {
-    const milliseconds = bytes / networkThroughput * 1000;
-    return milliseconds;
   }
 
   /**

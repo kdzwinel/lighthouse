@@ -142,10 +142,7 @@ class Util {
       case 'numeric':
       case 'binary':
       default:
-        // Numeric audits that are within PASS_THRESHOLD will still show up with failing.
-        // For opportunities, we want to have them show up with other failing for contrast.
-        // For diagnostics, we sort by score so they'll be lowest priority.
-        return Number(audit.score) === 1;
+        return Number(audit.score) >= RATINGS.PASS.minScore;
     }
   }
 
@@ -418,7 +415,12 @@ class Util {
         summary = 'Unknown';
     }
 
-    const deviceEmulation = settings.disableDeviceEmulation ? 'No emulation' : 'Emulated Nexus 5X';
+    let deviceEmulation = 'No emulation';
+    if (!settings.disableDeviceEmulation) {
+      if (settings.emulatedFormFactor === 'mobile') deviceEmulation = 'Emulated Nexus 5X';
+      if (settings.emulatedFormFactor === 'desktop') deviceEmulation = 'Emulated Desktop';
+    }
+
     return {
       deviceEmulation,
       cpuThrottling,
@@ -481,6 +483,11 @@ Util.UIStrings = {
   crcInitialNavigation: 'Initial Navigation',
   /** Label of value shown in the summary of critical request chains. Refers to the total amount of time (milliseconds) of the longest critical path chain/sequence of network requests. Example value: 2310 ms */
   crcLongestDurationLabel: 'Maximum critical path latency:',
+
+  /** Explanation shown to users below performance results to inform them that the test was done with a 3G network connection and to warn them that the numbers they see will likely change slightly the next time they run Lighthouse. 'Lighthouse' becomes link text to additional documentation. */
+  lsPerformanceCategoryDescription: '[Lighthouse](https://developers.google.com/web/tools/lighthouse/) analysis of the current page on emulated 3G. Values are estimated and may vary.',
+  /** Title of the lab data section of the Performance category. Within this section are various speed metrics which quantify the pageload performance into values presented in seconds and milliseconds. "Lab" is an abbreviated form of "laboratory", and refers to the fact that the data is from a controlled test of a website, not measurements from real users visiting that site.  */
+  labDataTitle: 'Lab Data',
 };
 
 if (typeof module !== 'undefined' && module.exports) {

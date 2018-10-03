@@ -9,7 +9,7 @@ const lighthouse = require('../../../lighthouse-core/index');
 const RawProtocol = require('../../../lighthouse-core/gather/connections/raw');
 const Config = require('../../../lighthouse-core/config/config');
 const defaultConfig = require('../../../lighthouse-core/config/default-config.js');
-const i18n = require('../../../lighthouse-core/lib/i18n');
+const i18n = require('../../../lighthouse-core/lib/i18n/i18n.js');
 const log = require('lighthouse-logger');
 
 /** @typedef {import('../../../lighthouse-core/gather/connections/connection.js')} Connection */
@@ -70,10 +70,11 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 }
 
-if (typeof window !== 'undefined') {
-  // Expose on window for devtools, other consumers of file.
+// Expose only in DevTools' worker
+// @ts-ignore
+if (typeof self !== 'undefined') {
   // @ts-ignore
-  window.runLighthouseInWorker = runLighthouseInWorker;
+  self.runLighthouseInWorker = runLighthouseInWorker;
   // @ts-ignore
-  window.listenForStatus = listenForStatus;
+  self.listenForStatus = listenForStatus;
 }

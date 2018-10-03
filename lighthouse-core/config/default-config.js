@@ -8,7 +8,7 @@
 /* eslint-disable max-len */
 
 const constants = require('./constants');
-const i18n = require('../lib/i18n');
+const i18n = require('../lib/i18n/i18n.js');
 
 const UIStrings = {
   /** Title of the Performance category of audits. Equivalent to 'Web performance', this term is inclusive of all web page speed and loading optimization topics. Also used as a label of a score gauge; try to limit to 20 characters. */
@@ -197,6 +197,7 @@ const defaultConfig = {
     'dobetterweb/geolocation-on-start',
     'dobetterweb/no-document-write',
     'dobetterweb/no-vulnerable-libraries',
+    'dobetterweb/js-libraries',
     'dobetterweb/no-websql',
     'dobetterweb/notification-on-start',
     'dobetterweb/password-inputs-can-be-pasted-into',
@@ -408,6 +409,7 @@ const defaultConfig = {
         {id: 'geolocation-on-start', weight: 1},
         {id: 'doctype', weight: 1},
         {id: 'no-vulnerable-libraries', weight: 1},
+        {id: 'js-libraries', weight: 0},
         {id: 'notification-on-start', weight: 1},
         {id: 'deprecations', weight: 1},
         {id: 'password-inputs-can-be-pasted-into', weight: 1},

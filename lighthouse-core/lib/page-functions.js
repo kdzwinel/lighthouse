@@ -107,12 +107,20 @@ function getElementsInDocument(selector) {
 /**
  * Gets the opening tag text of the given node.
  * @param {Element} element
+ * @param {Array<string>=} ignoreAttrs An optional array of attribute tags to not include in the HTML snippet.
  * @return {string}
  */
 /* istanbul ignore next */
-function getOuterHTMLSnippet(element) {
+function getOuterHTMLSnippet(element, ignoreAttrs=[]) {
+  const clone = element.cloneNode();
+
+  ignoreAttrs.forEach(attribute =>{
+    clone.removeAttribute(attribute);
+  });
+
   const reOpeningTag = /^.*?>/;
-  const match = element.outerHTML.match(reOpeningTag);
+  const match = clone.outerHTML.match(reOpeningTag);
+
   return (match && match[0]) || '';
 }
 
@@ -145,10 +153,12 @@ function ultradumbBenchmark() {
 }
 
 module.exports = {
-  wrapRuntimeEvalErrorInBrowser,
-  registerPerformanceObserverInPage,
-  checkTimeSinceLastLongTask,
-  getElementsInDocument,
-  getOuterHTMLSnippet,
-  ultradumbBenchmark,
+  wrapRuntimeEvalErrorInBrowserString: wrapRuntimeEvalErrorInBrowser.toString(),
+  registerPerformanceObserverInPageString: registerPerformanceObserverInPage.toString(),
+  checkTimeSinceLastLongTaskString: checkTimeSinceLastLongTask.toString(),
+  getElementsInDocumentString: getElementsInDocument.toString(),
+  getOuterHTMLSnippetString: getOuterHTMLSnippet.toString(),
+  getOuterHTMLSnippet: getOuterHTMLSnippet,
+  ultradumbBenchmark: ultradumbBenchmark,
+  ultradumbBenchmarkString: ultradumbBenchmark.toString(),
 };
