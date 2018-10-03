@@ -110,7 +110,7 @@ class DOM {
    * @param {{channel?: string | null, rating?: string}=} metadata
    * @return {Element}
    */
-  convertMarkdownLinkSnippets(text, metadata) {
+  convertMarkdownLinkSnippets(text, metadata = {}) {
     const element = this.createElement('span');
 
     // Split on markdown links (e.g. [some link](https://...)).
@@ -135,10 +135,10 @@ class DOM {
         if (url.origin === DEVELOPERS_GOOGLE_ORIGIN) {
           url.searchParams.set('utm_source', 'lighthouse');
 
-          if (metadata && metadata.channel) {
+          if (metadata.channel) {
             url.searchParams.set('utm_medium', metadata.channel);
           }
-          if (metadata && metadata.rating) {
+          if (metadata.rating) {
             url.searchParams.set('utm_content', metadata.rating);
           }
         }

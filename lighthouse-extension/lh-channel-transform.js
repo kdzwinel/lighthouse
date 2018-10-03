@@ -18,11 +18,11 @@ module.exports = function(file, options) {
     next();
   }, function(done) {
     let fileContentsString = fileContents.join('');
-    const needle = 'process.env.LH_CHANNEL';
 
-    if (fileContentsString.includes(needle)) {
-      fileContentsString = fileContentsString.replace(needle, `'${options.channel}'`);
-    }
+    fileContentsString = fileContentsString.replace(
+      /process\.env\.LH_CHANNEL/g,
+      `'${options.channel}'`
+    );
 
     // eslint-disable-next-line no-invalid-this
     this.push(fileContentsString);
