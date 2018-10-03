@@ -49,8 +49,8 @@ describe('Lighthouse chrome extension', function() {
 
   function getLearnMoreURLForIsOnHTTPS() {
     return extensionPage.evaluate(() => {
-      return document.querySelector("#is-on-https .lh-audit__description a").href
-    })
+      return document.querySelector('#is-on-https .lh-audit__description a').href;
+    });
   }
 
   before(async function() {
@@ -183,9 +183,9 @@ describe('Lighthouse chrome extension', function() {
   });
 
   it('should include UTM params in documentation URLs', async () => {
-    const url = await getLearnMoreURLForIsOnHTTPS()
-    assert.ok(url.includes("utm_medium=ext"), 'Incorrect or missing utm_medium parameter');
-    assert.ok(url.includes("utm_source=lighthouse"), 'Incorrect or missing utm_source parameter');
-    assert.ok(url.includes("utm_content=pass"), 'Incorrect or missing utm_content parameter');
+    const url = await getLearnMoreURLForIsOnHTTPS();
+    assert.ok(url.includes('utm_medium=ext'), 'Incorrect or missing utm_medium parameter');
+    assert.ok(url.includes('utm_source=lighthouse'), 'Incorrect or missing utm_source parameter');
+    assert.ok(url.includes('utm_content=pass'), 'Incorrect or missing utm_content parameter');
   });
 });
