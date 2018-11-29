@@ -54,17 +54,19 @@ module.exports = function expand(inputObject) {
     resolve = res; reject = rej;
   });
 
+  const documentLoader = (
+      /** @type {string} **/ schemaUrl,
+      /** @type {function(null, Object):void} **/ callback
+  ) => {
+    try {
+      return loadDocument(schemaUrl, callback);
+    } catch (e) {
+      reject(e.message);
+    }
+  };
+
   jsonld.expand(inputObject, {
-    documentLoader: (
-        /** @type {string} **/ schemaUrl,
-        /** @type {function(null, Object):void} **/ callback
-    ) => {
-      try {
-        return loadDocument(schemaUrl, callback);
-      } catch (e) {
-        reject(e.message);
-      }
-    },
+    documentLoader,
   }, (/** @type {string} */e, /** @type {Object} **/expanded) => {
     if (e) {
       reject('Expansion error: ' + e.toString());
