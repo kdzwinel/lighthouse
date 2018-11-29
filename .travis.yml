@@ -20,7 +20,9 @@ install:
   # with the latest puppeteer api so we probably need to run on chromimum
   # @see https://github.com/GoogleChrome/lighthouse/pull/4640/files#r171425004
   - export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
-  - yarn
+  # rff-canonize needs newer gcc version
+  # https://github.com/digitalbazaar/rdf-canonize/issues/3#issuecomment-419541413
+  - CC=gcc-4.9 CXX=g++-4.9 yarn
 before_script:
   - export DISPLAY=:99.0
   # see comment above about puppeteer
@@ -51,3 +53,9 @@ after_success:
   - yarn codecov
 addons:
   chrome: stable
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-4.9
+      - g++-4.9
