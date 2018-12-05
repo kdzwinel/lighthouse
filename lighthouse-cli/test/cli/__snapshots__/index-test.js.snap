@@ -951,11 +951,6 @@ Object {
           "weight": 1,
         },
         Object {
-          "group": "seo-content",
-          "id": "structured-data-automatic",
-          "weight": 1,
-        },
-        Object {
           "id": "mobile-friendly",
           "weight": 0,
         },

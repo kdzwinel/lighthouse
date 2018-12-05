@@ -479,7 +479,7 @@ const defaultConfig = {
         {id: 'canonical', weight: 1, group: 'seo-content'},
         {id: 'font-size', weight: 1, group: 'seo-mobile'},
         {id: 'plugins', weight: 1, group: 'seo-content'},
-        {id: 'structured-data-automatic', weight: 1, group: 'seo-content'},
+        // {id: 'structured-data-automatic', weight: 1, group: 'seo-content'},
         // Manual audits
         {id: 'mobile-friendly', weight: 0},
         {id: 'structured-data', weight: 0},

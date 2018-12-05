@@ -11,6 +11,7 @@
 module.exports = {
   extends: 'lighthouse:default',
   settings: {
-    onlyCategories: ['seo'],
+    // comment out until json-ld audit is included in seo category
+    // onlyCategories: ['seo'],
   },
 };

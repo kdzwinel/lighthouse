@@ -3366,11 +3366,6 @@
           "group": "seo-content"
         },
         {
-          "id": "structured-data-automatic",
-          "weight": 1,
-          "group": "seo-content"
-        },
-        {
           "id": "mobile-friendly",
           "weight": 0
         },
